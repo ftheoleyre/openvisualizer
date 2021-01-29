@@ -181,7 +181,7 @@ def boot(proxy, mote):
 @click.command()
 @click.option('--rpc-host', default='localhost', help='Host address for webserver', show_default=True)
 @click.option('--rpc-port', default='9000', help='Port number for webserver', show_default=True)
-@click.option('--web-host', default='localhost', help='Host address for webserver', show_default=True)
+@click.option('--web-host', default='0.0.0.0', help='Host address for webserver', show_default=True)
 @click.option('--web-port', default='8080', help='Port number for webserver', show_default=True)
 @click.option('--debug', default='DEBUG', help='provide debug level [DEBUG, INFO, WARNING, ERROR, CRITICAL]',
               show_default=True)

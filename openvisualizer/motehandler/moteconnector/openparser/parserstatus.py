@@ -129,8 +129,7 @@ class ParserStatus(parser.Parser):
             3,
             6,
             'ScheduleRow',
-            # '<BHBBBBBQQBBBBHH',
-            '<BHBBBBQQBBBBHH',
+            '<BHBBBBQQBBBBBHH',
             [
                 'row',  # B
                 'slotOffset',  # H
@@ -144,6 +143,7 @@ class ParserStatus(parser.Parser):
                 'numRx',  # B
                 'numTx',  # B
                 'numTxACK',  # B
+                'priority', # B
                 'lastUsedAsn_4',  # B
                 'lastUsedAsn_2_3',  # H
                 'lastUsedAsn_0_1',  # H
@@ -274,7 +274,7 @@ class ParserStatus(parser.Parser):
     def parse_input(self, data):
 
         log.debug("received data={0}".format(data))
-
+        
         # ensure data not short longer than header
         self._check_length(data)
 
@@ -298,11 +298,12 @@ class ParserStatus(parser.Parser):
 
                 # log
                 log.debug("parsing {0}, ({1} bytes) as {2}".format(data, len(data), key.name))
-
+                
                 # parse byte array
                 try:
                     fields = struct.unpack(key.structure, ''.join([chr(c) for c in data]))
                 except struct.error as err:
+                    print("error")
                     raise ParserException(
                         ParserException.ExceptionType.DESERIALIZE.value,
                         "could not extract tuple {0} by applying {1} to {2}; error: {3}".format(

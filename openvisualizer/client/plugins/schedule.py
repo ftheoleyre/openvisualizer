@@ -56,7 +56,7 @@ class Schedule(View):
         for r in active_cells:
             c, shift = self._get_row_color(str(r['type'])[2:])
             # r_str = '|{}{:^8s}{}|{:^3s}|{:^3s}|{:^6s}|{:^8s}|{:^6s}|{:^14s}|{:^5s}|{:^9s}|{:^5s}|'.format(
-            r_str = '|{}{:^8s}{}|{:^3s}|{:^6s}|{:^8s}|{:^6s}|{:^14s}|{:^5s}|{:^9s}|{:^5s}|'.format(
+            r_str = '|{}{:^8s}{}|{:^3s}|{:^6s}|{:^8s}|{:^6s}|{:^14s}|{:^5s}|{:^9s}|{:^5s}|{:^5s}|'.format(
                 c, str(r['type'])[2:], n,
                 'X' if int(r['shared']) else ' ',
                 # 'X' if int(r['isAutoCell']) else ' ',
@@ -66,6 +66,7 @@ class Schedule(View):
                 hex(int(str(r['lastUsedAsn']), 16)),
                 str(r['numTx']),
                 str(r['numTxACK']),
+                str(r['priority']),
                 str(r['numRx']))
 
             print(r_str.rjust(abs(w + int(len(r_str) / 2) + shift)))

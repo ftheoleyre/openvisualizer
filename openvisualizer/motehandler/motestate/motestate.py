@@ -137,6 +137,7 @@ class MoteState(EventBusClient):
                     'numRx',
                     'numTx',
                     'numTxACK',
+                    'priority',
                     'lastUsedAsn',
                 ],
             ),
