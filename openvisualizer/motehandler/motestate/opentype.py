@@ -201,8 +201,8 @@ class TypeCellType(OpenType):
     CELLTYPE_TX = 1
     CELLTYPE_RX = 2
     CELLTYPE_TXRX = 3
-    CELLTYPE_SERIALRX = 4
-    CELLTYPE_MORESERIALRX = 5
+    CELLTYPE_TX_ANYCAST = 4
+    CELLTYPE_RX_ANYCAST = 5
 
     def __init__(self):
         super(TypeCellType, self).__init__()
@@ -222,10 +222,10 @@ class TypeCellType(OpenType):
             self.desc = 'RX'
         elif type == self.CELLTYPE_TXRX:
             self.desc = 'TXRX'
-        elif type == self.CELLTYPE_SERIALRX:
-            self.desc = 'SERIALRX'
-        elif type == self.CELLTYPE_MORESERIALRX:
-            self.desc = 'MORESERIALRX'
+        elif type == self.CELLTYPE_TX_ANYCAST:
+            self.desc = 'CELLTYPE_TX_ANYCAST'
+        elif type == self.CELLTYPE_RX_ANYCAST:
+            self.desc = 'CELLTYPE_RX_ANYCAST'
         else:
             self.desc = 'unknown'
             self.addr = None

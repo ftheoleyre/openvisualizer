@@ -8,6 +8,9 @@ import logging
 import sys
 
 from openvisualizer.motehandler.moteconnector.openparser import parser
+from openvisualizer.motehandler.moteconnector.openparser.parserexception import ParserException
+from openvisualizer.utils import format_buf
+
 
 log = logging.getLogger('ParserPrintf')
 log.setLevel(logging.INFO)
@@ -16,6 +19,8 @@ log.addHandler(logging.NullHandler())
 
 class ParserPrintf(parser.Parser):
     HEADER_LENGTH = 2
+
+    buffer = ""
 
     def __init__(self):
 
@@ -51,11 +56,21 @@ class ParserPrintf(parser.Parser):
         # log
         log.debug('received printf {0}'.format(data))
 
-        _ = ParserPrintf.bytes_to_addr(data[0:2])  # addr
-        _ = ParserPrintf.bytes_to_string(data[2:7])  # asn
-
-        sys.stdout.write("{}".format("".join([chr(c) for c in data[7:]])))
-        sys.stdout.flush()
-
+        mote_id = ParserPrintf.bytes_to_addr(data[0:2])  # addr
+        asn = ParserPrintf.bytes_to_string(data[2:7])  # asn
+        msg = "{}".format("".join([chr(c) for c in data[7:]]))               
+               
+        log.info("[ASN={ASN}] {MOTEID:x}: {MSG}".format(
+            ASN=asn,
+            MOTEID=int(mote_id),
+            MSG=msg.strip()))
+        
+        #sys.stdout.write("{0} {1} ".format(mote_id, asn));
+        #sys.stdout.write("{}".format("".join([chr(c) for c in data[7:]])))
+        #sys.stdout.flush()
+          
+       
+        
         # everything was fine
         return 'error', data
+

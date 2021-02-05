@@ -129,12 +129,13 @@ class ParserStatus(parser.Parser):
             3,
             6,
             'ScheduleRow',
-            '<BHBBBBQQBBBBBHH',
+            '<BHBBBBBQQBBBBBHH',
             [
                 'row',  # B
                 'slotOffset',  # H
                 'type',  # B
                 'shared',  # B
+                'anycast', # B
                 # 'isAutoCell',  # B
                 'channelOffset',  # B
                 'neighbor_type',  # B
@@ -303,7 +304,6 @@ class ParserStatus(parser.Parser):
                 try:
                     fields = struct.unpack(key.structure, ''.join([chr(c) for c in data]))
                 except struct.error as err:
-                    print("error")
                     raise ParserException(
                         ParserException.ExceptionType.DESERIALIZE.value,
                         "could not extract tuple {0} by applying {1} to {2}; error: {3}".format(

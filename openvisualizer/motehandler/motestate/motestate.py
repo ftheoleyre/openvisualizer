@@ -132,6 +132,7 @@ class MoteState(EventBusClient):
                     'slotOffset',
                     'type',
                     'shared',
+                    'anycast',
                     'channelOffset',
                     'neighbor',
                     'numRx',
