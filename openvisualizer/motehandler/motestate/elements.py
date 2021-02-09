@@ -186,8 +186,11 @@ class StateScheduleRow(StateElem):
 
         if 'neighbor' not in self.data[0]:
             self.data[0]['neighbor'] = TypeAddr()
+        if 'neighbor2' not in self.data[0]:
+            self.data[0]['neighbor2'] = TypeAddr()
 
         self.data[0]['neighbor'].update(notif.neighbor_type, notif.neighbor_bodyH, notif.neighbor_bodyL)
+        self.data[0]['neighbor2'].update(notif.neighbor2_type, notif.neighbor2_bodyH, notif.neighbor2_bodyL)
         self.data[0]['numRx'] = notif.numRx
         self.data[0]['numTx'] = notif.numTx
         self.data[0]['numTxACK'] = notif.numTxACK

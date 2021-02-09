@@ -129,7 +129,7 @@ class ParserStatus(parser.Parser):
             3,
             6,
             'ScheduleRow',
-            '<BHBBBBBQQBBBBBHH',
+            '<BHBBBBBQQBQQBBBBBHH',
             [
                 'row',  # B
                 'slotOffset',  # H
@@ -141,6 +141,9 @@ class ParserStatus(parser.Parser):
                 'neighbor_type',  # B
                 'neighbor_bodyH',  # Q
                 'neighbor_bodyL',  # Q
+                'neighbor2_type',  # B
+                'neighbor2_bodyH',  # Q
+                'neighbor2_bodyL',  # Q
                 'numRx',  # B
                 'numTx',  # B
                 'numTxACK',  # B

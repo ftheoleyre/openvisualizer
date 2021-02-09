@@ -135,6 +135,7 @@ class MoteState(EventBusClient):
                     'anycast',
                     'channelOffset',
                     'neighbor',
+                    'neighbor2',
                     'numRx',
                     'numTx',
                     'numTxACK',
