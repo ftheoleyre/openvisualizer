@@ -60,10 +60,12 @@ class ParserPrintf(parser.Parser):
         asn = ParserPrintf.bytes_to_string(data[2:7])  # asn
         msg = "{}".format("".join([chr(c) for c in data[7:]]))               
                
-        log.info("[ASN={ASN}] {MOTEID:x}: {MSG}".format(
+        log.info("[ASN={ASN}] {MOTEID}: {MSG}".format(
             ASN=asn,
-            MOTEID=int(mote_id),
-            MSG=msg.strip()))
+            MOTEID=mote_id,
+            MSG=msg.strip()
+            )
+            )
         
         #sys.stdout.write("{0} {1} ".format(mote_id, asn));
         #sys.stdout.write("{}".format("".join([chr(c) for c in data[7:]])))
