@@ -37,6 +37,9 @@ class BspRadio(BspModule, EventBusClient):
     INTR_ENDOFFRAME_MOTE = 'radio.endofframe_fromMote'
     INTR_STARTOFFRAME_PROPAGATION = 'radio.startofframe_fromPropagation'
     INTR_ENDOFFRAME_PROPAGATION = 'radio.endofframe_fromPropagation'
+    INTR_CCAEND_SELF = 'radio.ccaend_fromSelf'
+
+    nbActiveSignals = 0      #nb of active signals on the medium (=0 -> idle)
 
     def __init__(self, motehandler):
 
@@ -136,6 +139,26 @@ class BspRadio(BspModule, EventBusClient):
 
         # wiggle de debugpin
         self.motehandler.bsp_debugpins.cmd_radio_clr()
+    
+    def cmd_trigger_cca(self):
+    
+        # log the activity
+        if self.log.isEnabledFor(logging.DEBUG):
+           self.log.debug('cmd_trigger_cca')
+    
+        # calculate when the end of the CCA will occurs
+        current_time = self.timeline.get_current_time()
+        CCA_time = current_time + 0.000128   #128us
+        
+        #print(CCA_time)
+
+        #schedule "result of CCA event
+        self.timeline.schedule_event(CCA_time,
+                                     self.motehandler.get_id(),
+                                     self.intr_ccaend_fromSelf,
+                                     self.INTR_CCAEND_SELF)
+
+
 
     def cmd_load_packet(self, packet_to_load):
         """ Emulates: void radio_loadPacket(uint8_t* packet, uint8_t len) """
@@ -249,6 +272,8 @@ class BspRadio(BspModule, EventBusClient):
 
     # ======================== interrupts ======================================
 
+    
+
     def intr_start_of_frame_from_mote(self):
 
         # indicate transmission starts on eventBus
@@ -283,7 +308,10 @@ class BspRadio(BspModule, EventBusClient):
 
         # indicate to the mote
         self.motehandler.mote.radio_isr_startFrame(counter_val)
-
+        
+        # saves the nb of active signals
+        self.nbActiveSignals = self.nbActiveSignals + 1
+         
         # do NOT kick the scheduler
         return True
 
@@ -308,7 +336,10 @@ class BspRadio(BspModule, EventBusClient):
 
         # signal end of frame to mote
         counter_val = self.sctimer.cmd_read_counter()
-
+                
+        # saves the nb of active signals
+        self.nbActiveSignals = self.nbActiveSignals - 1
+        
         # log
         if self.log.isEnabledFor(logging.DEBUG):
             self.log.debug('intr_end_of_frame_from_propagation counter_val={0}'.format(counter_val))
@@ -319,6 +350,17 @@ class BspRadio(BspModule, EventBusClient):
         # do NOT kick the scheduler
         return True
 
+    # return True if a signal is sensed on the medium
+    def intr_ccaend_fromSelf(self):
+
+        # indicate to the mote
+        self.motehandler.mote.radio_isr_CCAend(self.nbActiveSignals >= 1)
+
+        # do NOT kick the scheduler
+        return True
+        
+        
+        
     # ======================== indication from Propagation =====================
 
     def indicate_tx_start(self, mote_id, packet, channel):

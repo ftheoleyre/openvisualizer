@@ -152,6 +152,7 @@ class MoteHandler(threading.Thread):
         mote.set_callback(notif_id('radio_setFrequency'), self.bsp_radio.cmd_set_frequency)
         mote.set_callback(notif_id('radio_rfOn'), self.bsp_radio.cmd_rf_on)
         mote.set_callback(notif_id('radio_rfOff'), self.bsp_radio.cmd_rf_off)
+        mote.set_callback(notif_id('radio_trigger_CCA'), self.bsp_radio.cmd_trigger_cca)
         mote.set_callback(notif_id('radio_loadPacket'), self.bsp_radio.cmd_load_packet)
         mote.set_callback(notif_id('radio_txEnable'), self.bsp_radio.cmd_tx_enable)
         mote.set_callback(notif_id('radio_txNow'), self.bsp_radio.cmd_tx_now)
