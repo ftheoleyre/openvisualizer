@@ -145,12 +145,27 @@ class BspRadio(BspModule, EventBusClient):
         # log the activity
         if self.log.isEnabledFor(logging.DEBUG):
            self.log.debug('cmd_trigger_cca')
+           
+        print("{0}: cmd_trigger_cca, time {1}".format(self.motehandler.get_id(), self.timeline.get_current_time()))
     
         # calculate when the end of the CCA will occurs
         current_time = self.timeline.get_current_time()
         CCA_time = current_time + 0.000128   #128us
         
-        #print(CCA_time)
+        if (self.state != RadioState.LISTENING):
+           print("\n")
+           print("\n")
+           print("\n")
+           print("\n")
+           print("\n")
+           print("\n")
+           print("{0}: Eror, We are not in the listening State to Trigger a CCA\n", self.motehandler.get_id())
+           print("\n")
+           print("\n")
+           print("\n")
+           print("\n")
+           print("\n")
+           print("\n")
 
         #schedule "result of CCA event
         self.timeline.schedule_event(CCA_time,
@@ -201,6 +216,8 @@ class BspRadio(BspModule, EventBusClient):
 
     def cmd_tx_now(self):
         """ Emulates: void radio_txNow() """
+
+        print("{0} txnow !".format(self.motehandler.get_id()))
 
         # log the activity
         if self.log.isEnabledFor(logging.DEBUG):
@@ -275,7 +292,8 @@ class BspRadio(BspModule, EventBusClient):
     
 
     def intr_start_of_frame_from_mote(self):
-
+        print("{0}: tx start - {1} signal(s), time {2}".format(self.motehandler.get_id(), self.nbActiveSignals, self.timeline.get_current_time()))
+         
         # indicate transmission starts on eventBus
         self.dispatch(
             signal=propagation.Propagation.SIGNAL_WIRELESSTXSTART,
@@ -308,14 +326,13 @@ class BspRadio(BspModule, EventBusClient):
 
         # indicate to the mote
         self.motehandler.mote.radio_isr_startFrame(counter_val)
-        
-        # saves the nb of active signals
-        self.nbActiveSignals = self.nbActiveSignals + 1
          
         # do NOT kick the scheduler
         return True
 
     def intr_end_of_frame_from_mote(self):
+        print("{0}: tx end - {1} signal(s), time {2}".format(self.motehandler.get_id(), self.nbActiveSignals, self.timeline.get_current_time()))
+ 
 
         # indicate transmission ends on eventBus
         self.dispatch(
@@ -337,9 +354,6 @@ class BspRadio(BspModule, EventBusClient):
         # signal end of frame to mote
         counter_val = self.sctimer.cmd_read_counter()
                 
-        # saves the nb of active signals
-        self.nbActiveSignals = self.nbActiveSignals - 1
-        
         # log
         if self.log.isEnabledFor(logging.DEBUG):
             self.log.debug('intr_end_of_frame_from_propagation counter_val={0}'.format(counter_val))
@@ -352,7 +366,12 @@ class BspRadio(BspModule, EventBusClient):
 
     # return True if a signal is sensed on the medium
     def intr_ccaend_fromSelf(self):
-
+        print("{0}: cca end, nb signal {1}, time {2}".format(
+                self.motehandler.get_id(),
+                self.nbActiveSignals,
+                self.timeline.get_current_time()
+        ))
+        
         # indicate to the mote
         self.motehandler.mote.radio_isr_CCAend(self.nbActiveSignals >= 1)
 
@@ -368,7 +387,11 @@ class BspRadio(BspModule, EventBusClient):
         if self.log.isEnabledFor(logging.DEBUG):
             self.log.debug(
                 'indicate_tx_start from mote_id={0} channel={1} len={2}'.format(mote_id, channel, len(packet)))
-
+        
+        # saves the nb of active signals
+        self.nbActiveSignals = self.nbActiveSignals + 1
+        print("{0}: rx start - {1} signal(s), time {2}, from {3}".format(self.motehandler.get_id(), self.nbActiveSignals, self.timeline.get_current_time(), mote_id))
+        
         if self.is_initialized and self.state == RadioState.LISTENING and self.frequency == channel:
             self._change_state(RadioState.RECEIVING)
 
@@ -387,6 +410,10 @@ class BspRadio(BspModule, EventBusClient):
             )
 
     def indicate_tx_end(self, mote_id):
+
+        # saves the nb of active signals
+        self.nbActiveSignals = self.nbActiveSignals - 1
+        print("{0}: rx end - {1} signal(s), time {2}, from {3}".format(self.motehandler.get_id(), self.nbActiveSignals, self.timeline.get_current_time(), mote_id))
 
         if self.log.isEnabledFor(logging.DEBUG):
             self.log.debug('indicate_tx_end from mote_id={0}'.format(mote_id))
