@@ -44,7 +44,7 @@ class ParserStat(parser.Parser):
         # Create tables
         c = conn.cursor()
         c.execute('''CREATE TABLE pkt
-             (asn integer, src text, dest text, mode text, type text, validrx int, slotOffset int, channelOffset int, priority int, nb_retx int, lqi int, rssi int, crc int)''')
+             (asn integer, moteid text, src text, dest text, mode text, type text, validrx int, slotOffset int, channelOffset int, priority int, nb_retx int, lqi int, rssi int, crc int)''')
         conn.commit()
         conn.close()
          
@@ -105,26 +105,27 @@ class ParserStat(parser.Parser):
            
         #handle each statistic independently
         if (typeStat == 1):
-            if (len(data) != 34):
+            if (len(data) != 42):
                 log.error("Incorrect length for a stat_pkt in ParserStat.py ({0})".format(len(data)))
                 return 'error', data
         
-            src             = ParserStat.bytes_to_addr(data[8:16])
-            dest            = ParserStat.bytes_to_addr(data[16:24])
-            mode            = ParserStat.modeString(data[24])
-            validRx         = data[25]
-            type            = ParserStat.typeString(data[26])
-            slotOffset      = data[27]
-            channelOffset   = data[28]
-            priority        = data[29]
-            nb_retx         = data[30]
-            lqi             = data[31]
-            rssi            = data[32]
-            crc             = data[33]
+            moteid          = ParserStat.bytes_to_addr(data[8:16])
+            src             = ParserStat.bytes_to_addr(data[16:24])
+            dest            = ParserStat.bytes_to_addr(data[24:32])
+            mode            = ParserStat.modeString(data[32])
+            validRx         = data[33]
+            type            = ParserStat.typeString(data[34])
+            slotOffset      = data[35]
+            channelOffset   = data[36]
+            priority        = data[37]
+            nb_retx         = data[38]
+            lqi             = data[39]
+            rssi            = data[40]
+            crc             = data[41]
 
             conn = sqlite3.connect(dbfilename)
             c = conn.cursor()
-            c.execute("""INSERT INTO pkt (asn,src,dest,mode,type,validrx, slotOffset,channelOffset,priority,nb_retx,lqi,rssi,crc) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""", (asn, src, dest, mode, type, validRx, slotOffset, channelOffset, priority, nb_retx, lqi, rssi, crc))
+            c.execute("""INSERT INTO pkt (asn,moteid,src,dest,mode,type,validrx, slotOffset,channelOffset,priority,nb_retx,lqi,rssi,crc) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""", (asn, moteid, src, dest, mode, type, validRx, slotOffset, channelOffset, priority, nb_retx, lqi, rssi, crc))
             conn.commit()
             conn.close()
             
