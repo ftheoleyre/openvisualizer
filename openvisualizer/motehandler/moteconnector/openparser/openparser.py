@@ -7,7 +7,7 @@
 import logging
 
 from openvisualizer.motehandler.moteconnector.openparser import parser, parserstatus, parserdata, parserpacket, \
-    parserprintf
+    parserprintf, parserstat
 from openvisualizer.motehandler.moteconnector.openparser.parserlogs import ParserLogs
 
 log = logging.getLogger('OpenParser')
@@ -28,6 +28,7 @@ class OpenParser(parser.Parser):
     SERFRAME_MOTE2PC_CRITICAL = ParserLogs.LogSeverity.SEVERITY_CRITICAL
     SERFRAME_MOTE2PC_SNIFFED_PACKET = ord('P')
     SERFRAME_MOTE2PC_PRINTF = ord('F')
+    SERFRAME_MOTE2PC_STAT = ord('K')
 
     SERFRAME_PC2MOTE_SETDAGROOT = ord('R')
     SERFRAME_PC2MOTE_DATA = ord('D')
@@ -56,6 +57,7 @@ class OpenParser(parser.Parser):
         self.parser_data = parserdata.ParserData(mqtt_broker, mote_port)
         self.parser_packet = parserpacket.ParserPacket()
         self.parser_printf = parserprintf.ParserPrintf()
+        self.parser_stat = parserstat.ParserStat()
 
         # register subparsers
         self._add_sub_parser(
@@ -107,4 +109,9 @@ class OpenParser(parser.Parser):
             index=0,
             val=self.SERFRAME_MOTE2PC_PRINTF,
             parser=self.parser_printf,
+        )
+        self._add_sub_parser(
+            index=0,
+            val=self.SERFRAME_MOTE2PC_STAT,
+            parser=self.parser_stat,
         )

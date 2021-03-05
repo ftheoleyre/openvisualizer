@@ -174,8 +174,7 @@ class Propagation(EventBusClient):
         if from_mote in self.connections:
             for (to_mote, pdr) in self.connections[from_mote].items():
                 value = random.random()
-                print("{0} propag {1} < {2}".format(to_mote, value, pdr))
-            
+                
                 if value <= pdr:
                     # indicate start of transmission
                     mh = self.engine.get_mote_handler_by_id(to_mote)
