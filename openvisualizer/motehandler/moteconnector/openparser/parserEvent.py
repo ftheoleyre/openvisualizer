@@ -47,9 +47,13 @@ class ParserEvent(parser.Parser):
         c.execute('''CREATE TABLE pkt
         (asn int, moteid text, event text, src text, dest text, type text, validrx int, slotOffset int, channelOffset int, priority int, nb_retx int, lqi int, rssi int, crc int)''')
         
-        #schedule modification
+         #schedule modification
         c.execute('''CREATE TABLE schedule
         (asn int, moteid text, event text, neighbor text, neighbor2 text, type text, shared int, anycast int,  priority int, slotOffset int, channelOffset int)''')
+        
+        #RPL changes
+        c.execute('''CREATE TABLE rpl
+        (asn int, moteid text, event text, addr1 text, addr2 text)''')
         
         conn.commit()
         conn.close()
@@ -121,6 +125,16 @@ class ParserEvent(parser.Parser):
         if (type == 3):
             return("TXRX")
         return("UNKNOWN")
+        
+    #type of RPL event to string
+    @staticmethod
+    def eventRPLString(type):
+        if (type == 1):
+            return("PARENT_CHANGE")
+        if (type == 2):
+            return("SECONDPARENT_CHANGE")
+        return("UNKNOWN")
+                    
   
     def parse_input(self, data):
 
@@ -162,7 +176,7 @@ class ParserEvent(parser.Parser):
             
         elif (typeStat == 2):
             if (len(data) != 39):
-                log.error("Incorrect length for a stat_pkt in ParserEvent.py ({0})".format(len(data)))
+                log.error("Incorrect length for a stat_schedule in ParserEvent.py ({0})".format(len(data)))
                 return 'error', data
         
             moteid          = ParserEvent.bytes_to_addr(data[8:16])
@@ -180,6 +194,22 @@ class ParserEvent(parser.Parser):
             conn = sqlite3.connect(dbfilename)
             c = conn.cursor()
             c.execute("""INSERT INTO schedule (asn, moteid, event, neighbor, neighbor2, type, shared, anycast, priority, slotOffset,channelOffset) VALUES (?,?,?,?,?,?,?,?,?,?,?)""", (asn, moteid, event, neighbor, neighbor2, type, shared, anycast, priority, slotOffset, channelOffset))
+            conn.commit()
+            conn.close()
+            
+        elif (typeStat == 3):
+            if (len(data) != 33):
+                log.error("Incorrect length for a stat_rpl in ParserEvent.py ({0})".format(len(data)))
+                return 'error', data
+        
+            moteid          = ParserEvent.bytes_to_addr(data[8:16])
+            event           = ParserEvent.eventRPLString(data[16])
+            addr1           = ParserEvent.bytes_to_addr(data[17:25])
+            addr2           = ParserEvent.bytes_to_addr(data[25:33])
+
+            conn = sqlite3.connect(dbfilename)
+            c = conn.cursor()
+            c.execute("""INSERT INTO rpl (asn, moteid, event, addr1, addr2) VALUES (?,?,?,?,?)""", (asn, moteid, event, addr1, addr2))
             conn.commit()
             conn.close()
             
