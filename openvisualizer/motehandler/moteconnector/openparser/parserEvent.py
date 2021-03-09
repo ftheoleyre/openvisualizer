@@ -33,30 +33,35 @@ class ParserEvent(parser.Parser):
         super(ParserEvent, self).__init__(self.HEADER_LENGTH)
 
         # create the db
-        directory = os.path.dirname(log.handlers[0].baseFilename)
-        global dbfilename
-        dbfilename = directory+'/openv_events.db'
-        log.info("created the sqlite db {0}".format(dbfilename))
-        if (os.path.exists(dbfilename)):
-           os.remove(dbfilename)
-        conn = sqlite3.connect(dbfilename)
+        try:
+            directory = os.path.dirname(log.handlers[0].baseFilename)
+            global dbfilename
+            dbfilename = directory+'/openv_events.db'
+            log.info("created the sqlite db {0}".format(dbfilename))
+            if (os.path.exists(dbfilename)):
+                os.remove(dbfilename)
+            conn = sqlite3.connect(dbfilename)
 
-        # Create tables
-        c = conn.cursor()
-        #packet reception / transmission
-        c.execute('''CREATE TABLE pkt
-        (asn int, moteid text, event text, src text, dest text, type text, validrx int, slotOffset int, channelOffset int, priority int, nb_retx int, lqi int, rssi int, crc int)''')
+            # Create tables
+            c = conn.cursor()
+            #packet reception / transmission
+            c.execute('''CREATE TABLE pkt
+            (asn int, moteid text, event text, src text, dest text, type text, validrx int, slotOffset int, channelOffset int, priority int, nb_retx int, lqi int, rssi int, crc int)''')
+            
+             #schedule modification
+            c.execute('''CREATE TABLE schedule
+            (asn int, moteid text, event text, neighbor text, neighbor2 text, type text, shared int, anycast int,  priority int, slotOffset int, channelOffset int)''')
+            
+            #RPL changes
+            c.execute('''CREATE TABLE rpl
+            (asn int, moteid text, event text, addr1 text, addr2 text)''')
+            
+            conn.commit()
+            conn.close()
+        except AttributeError:
+            log.error("no LogHandler for parserEvent: we cannot store the events in a sqlite DB")
         
-         #schedule modification
-        c.execute('''CREATE TABLE schedule
-        (asn int, moteid text, event text, neighbor text, neighbor2 text, type text, shared int, anycast int,  priority int, slotOffset int, channelOffset int)''')
         
-        #RPL changes
-        c.execute('''CREATE TABLE rpl
-        (asn int, moteid text, event text, addr1 text, addr2 text)''')
-        
-        conn.commit()
-        conn.close()
          
     # returns a string with the decimal value of a uint16_t
     @staticmethod
@@ -167,13 +172,15 @@ class ParserEvent(parser.Parser):
             rssi            = data[40]
             crc             = data[41]
 
-
-            conn = sqlite3.connect(dbfilename)
-            c = conn.cursor()
-            c.execute("""INSERT INTO pkt (asn,moteid,event,src,dest,type,validrx, slotOffset,channelOffset,priority,nb_retx,lqi,rssi,crc) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""", (asn, moteid, event, src, dest, type, validRx, slotOffset, channelOffset, priority, nb_retx, lqi, rssi, crc))
-            conn.commit()
-            conn.close()
-            
+            if 'dbfilename' in globals():
+                conn = sqlite3.connect(dbfilename)
+                c = conn.cursor()
+                c.execute("""INSERT INTO pkt (asn,moteid,event,src,dest,type,validrx, slotOffset,channelOffset,priority,nb_retx,lqi,rssi,crc) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""", (asn, moteid, event, src, dest, type, validRx, slotOffset, channelOffset, priority, nb_retx, lqi, rssi, crc))
+                conn.commit()
+                conn.close()
+            else:
+                log.info("1 {0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11} {12} {13}".format(asn, moteid, event, src, dest, type, validRx, slotOffset, channelOffset, priority, nb_retx, lqi, rssi, crc))
+                                
         elif (typeStat == 2):
             if (len(data) != 39):
                 log.error("Incorrect length for a stat_schedule in ParserEvent.py ({0})".format(len(data)))
@@ -191,11 +198,14 @@ class ParserEvent(parser.Parser):
             channelOffset   = data[38]
             
 
-            conn = sqlite3.connect(dbfilename)
-            c = conn.cursor()
-            c.execute("""INSERT INTO schedule (asn, moteid, event, neighbor, neighbor2, type, shared, anycast, priority, slotOffset,channelOffset) VALUES (?,?,?,?,?,?,?,?,?,?,?)""", (asn, moteid, event, neighbor, neighbor2, type, shared, anycast, priority, slotOffset, channelOffset))
-            conn.commit()
-            conn.close()
+            if 'dbfilename' in globals():
+                conn = sqlite3.connect(dbfilename)
+                c = conn.cursor()
+                c.execute("""INSERT INTO schedule (asn, moteid, event, neighbor, neighbor2, type, shared, anycast, priority, slotOffset,channelOffset) VALUES (?,?,?,?,?,?,?,?,?,?,?)""", (asn, moteid, event, neighbor, neighbor2, type, shared, anycast, priority, slotOffset, channelOffset))
+                conn.commit()
+                conn.close()
+            else:
+                log.info("2 {0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10}".format(asn, moteid, event, neighbor, neighbor2, type, shared, anycast, priority, slotOffset, channelOffset))
             
         elif (typeStat == 3):
             if (len(data) != 33):
@@ -207,15 +217,19 @@ class ParserEvent(parser.Parser):
             addr1           = ParserEvent.bytes_to_addr(data[17:25])
             addr2           = ParserEvent.bytes_to_addr(data[25:33])
 
-            conn = sqlite3.connect(dbfilename)
-            c = conn.cursor()
-            c.execute("""INSERT INTO rpl (asn, moteid, event, addr1, addr2) VALUES (?,?,?,?,?)""", (asn, moteid, event, addr1, addr2))
-            conn.commit()
-            conn.close()
-            
+            if 'dbfilename' in globals():
+                conn = sqlite3.connect(dbfilename)
+                c = conn.cursor()
+                c.execute("""INSERT INTO rpl (asn, moteid, event, addr1, addr2) VALUES (?,?,?,?,?)""", (asn, moteid, event, addr1, addr2))
+                conn.commit()
+                conn.close()
+            else:
+                log.info("3 {0} {1} {2} {3} {4}".format(asn, moteid, event, addr1, addr2))
+                
+        
         else:
             log.debug('unknown statistic type={0}'.format(typeStat))
-
+           
         
         #sys.stdout.write("{0} {1} ".format(mote_id, asn));
         #sys.stdout.write("{}".format("".join([chr(c) for c in data[7:]])))
