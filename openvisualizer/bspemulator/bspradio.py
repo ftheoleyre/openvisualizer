@@ -27,6 +27,11 @@ class RadioState:
     TXRX_DONE = 'TXRX_DONE'  # Frame has been sent/received completely.
     TURNING_OFF = 'TURNING_OFF'  # Turning the RF chain off.
 
+    # result of a CCA
+    CCA_IDLE    = 0x00    # nothing detected
+    CCA_BUSY    = 0x01    # energy detection
+    CCA_FAILED  = 0x02    # failed (handled in the firmware, not in simulation)
+    CCA_RXING   = 0x03    # a frame is currently received (on-going reception)
 
 class BspRadio(BspModule, EventBusClient):
     """ Emulates the 'radio' BSP module """
@@ -39,8 +44,9 @@ class BspRadio(BspModule, EventBusClient):
     INTR_ENDOFFRAME_PROPAGATION = 'radio.endofframe_fromPropagation'
     INTR_CCAEND_SELF = 'radio.ccaend_fromSelf'
 
-    nbActiveSignals = 0      #nb of active signals on the medium (=0 -> idle)
-
+    nbActiveSignals = 0      # nb of active signals on the medium (=0 -> idle)
+    frameOnGoing    = 0      # nb of startofframe that have not yet resulted in endofframe (to not trigger a CCA if the radio is busy for RXING)
+    
     def __init__(self, motehandler):
 
         # initialize the parents
@@ -123,7 +129,17 @@ class BspRadio(BspModule, EventBusClient):
 
     def cmd_rf_off(self):
         """ Emulates: void radio_rfOff() """
-
+        
+        if (self.frameOnGoing > 0):
+            print("")
+            print("")
+            print("")
+            print("error ! no rf off when a signal is ongoing")
+            print("{0}, time {1}".format(self.motehandler.get_id(), self.timeline.get_current_time()))
+            print("")
+            print("")
+            return
+            
         # log the activity
         if self.log.isEnabledFor(logging.DEBUG):
             self.log.debug('cmd_rf_off')
@@ -145,34 +161,26 @@ class BspRadio(BspModule, EventBusClient):
         # log the activity
         if self.log.isEnabledFor(logging.DEBUG):
            self.log.debug('cmd_trigger_cca')
-           
-        print("{0}: cmd_trigger_cca, time {1}".format(self.motehandler.get_id(), self.timeline.get_current_time()))
+        
+        #a signal is already currently captured -> no need to make a CCA -> direct notification
+        if (self.frameOnGoing >= 1):
+            self.motehandler.mote.radio_isr_CCAend(RadioState.CCA_RXING)
+            return;
     
         # calculate when the end of the CCA will occurs
         current_time = self.timeline.get_current_time()
         CCA_time = current_time + 0.000128   #128us
         
         if (self.state != RadioState.LISTENING):
-           print("\n")
-           print("\n")
-           print("\n")
-           print("\n")
-           print("\n")
-           print("\n")
-           print("{0}: Eror, We are not in the listening State to Trigger a CCA\n", self.motehandler.get_id())
-           print("\n")
-           print("\n")
-           print("\n")
-           print("\n")
-           print("\n")
-           print("\n")
-
+            self.log.error("{0}: Eror, We are not in the listening State to Trigger a CCA".format(
+                self.motehandler.get_id()
+                ))
+                
         #schedule "result of CCA event
         self.timeline.schedule_event(CCA_time,
                                      self.motehandler.get_id(),
                                      self.intr_ccaend_fromSelf,
                                      self.INTR_CCAEND_SELF)
-
 
 
     def cmd_load_packet(self, packet_to_load):
@@ -326,6 +334,9 @@ class BspRadio(BspModule, EventBusClient):
         # indicate to the mote
         self.motehandler.mote.radio_isr_startFrame(counter_val)
          
+        # a frame is currently received
+        self.frameOnGoing = self.frameOnGoing + 1
+        
         # do NOT kick the scheduler
         return True
 
@@ -351,6 +362,9 @@ class BspRadio(BspModule, EventBusClient):
 
     def intr_end_of_frame_from_propagation(self):
 
+        # a frame was received
+        self.frameOnGoing = self.frameOnGoing - 1
+       
         # signal end of frame to mote
         counter_val = self.sctimer.cmd_read_counter()
                 
@@ -360,7 +374,7 @@ class BspRadio(BspModule, EventBusClient):
 
         # indicate to the mote
         self.motehandler.mote.radio_isr_endFrame(counter_val)
-
+        
         # do NOT kick the scheduler
         return True
 
@@ -374,8 +388,11 @@ class BspRadio(BspModule, EventBusClient):
         ))
         
         # indicate to the mote
-        self.motehandler.mote.radio_isr_CCAend(self.nbActiveSignals >= 1)
-
+        if (self.nbActiveSignals >= 1):
+            self.motehandler.mote.radio_isr_CCAend(RadioState.CCA_BUSY)
+        else:
+            self.motehandler.mote.radio_isr_CCAend(RadioState.CCA_IDLE)
+        
         # do NOT kick the scheduler
         return True
         

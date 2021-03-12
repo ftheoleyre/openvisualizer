@@ -108,9 +108,14 @@ class TimeLine(threading.Thread):
             # log
             if self.log.isEnabledFor(logging.DEBUG):
                 self.log.debug('\n\nnow {0:.6f}, executing {1}@{2}'.format(event.at_time, event.desc, event.mote_id))
-
+           # if (event.at_time > 170):
+           #     print('{0:.6f}: executing {1}@{2}'.format(event.at_time, event.desc, event.mote_id))
+            
             # call the event's callback
             self.engine.get_mote_handler_by_id(event.mote_id).handle_event(event.cb)
+
+           # if (event.at_time > 170):
+           #     print("end of the call")
 
             # update statistics
             self.stats.increment_events()

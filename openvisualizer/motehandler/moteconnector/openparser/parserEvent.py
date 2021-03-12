@@ -32,12 +32,16 @@ class ParserEvent(parser.Parser):
         # initialize parent class
         super(ParserEvent, self).__init__(self.HEADER_LENGTH)
 
+        print("creation")
+
         # create the db
         try:
             directory = os.path.dirname(log.handlers[0].baseFilename)
             global dbfilename
             dbfilename = directory+'/openv_events.db'
-            log.info("created the sqlite db {0}".format(dbfilename))
+            log.verbose("created the sqlite db {0}".format(dbfilename))
+            print("created the sqlite db {0}".format(dbfilename))
+            
             if (os.path.exists(dbfilename)):
                 os.remove(dbfilename)
             conn = sqlite3.connect(dbfilename)
@@ -59,8 +63,10 @@ class ParserEvent(parser.Parser):
             conn.commit()
             conn.close()
         except AttributeError:
-            log.error("no LogHandler for parserEvent: we cannot store the events in a sqlite DB")
-        
+            print("no LogHandler for parserEvent: we cannot store the events in a sqlite DB")
+        except:
+            print("Unexpected error:", sys.exc_info()[0])
+
         
          
     # returns a string with the decimal value of a uint16_t
@@ -96,13 +102,13 @@ class ParserEvent(parser.Parser):
     #type of packet to string
     @staticmethod
     def typePacketString(type):
-        if (type == 1):
+        if (type == 0):
             return("BEACON")
-        if (type == 2):
+        if (type == 1):
             return("DATA")
-        if (type == 3):
+        if (type == 2):
             return("ACK")
-        if (type == 4):
+        if (type == 3):
             return("CMD")
         if (type == 5):
             return("UNDEFINED")
@@ -171,7 +177,7 @@ class ParserEvent(parser.Parser):
             lqi             = data[39]
             rssi            = data[40]
             crc             = data[41]
-
+            
             if 'dbfilename' in globals():
                 conn = sqlite3.connect(dbfilename)
                 c = conn.cursor()
@@ -228,7 +234,7 @@ class ParserEvent(parser.Parser):
                 
         
         else:
-            log.debug('unknown statistic type={0}'.format(typeStat))
+            log.error('unknown statistic type={0}'.format(typeStat))
            
         
         #sys.stdout.write("{0} {1} ".format(mote_id, asn));
