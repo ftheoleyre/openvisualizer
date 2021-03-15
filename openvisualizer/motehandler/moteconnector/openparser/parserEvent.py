@@ -50,7 +50,7 @@ class ParserEvent(parser.Parser):
             c = conn.cursor()
             #packet reception / transmission
             c.execute('''CREATE TABLE pkt
-            (asn int, moteid text, event text, src text, dest text, type text, validrx int, slotOffset int, channelOffset int, priority int, nb_retx int, lqi int, rssi int, crc int)''')
+            (asn int, moteid text, event text, src text, dest text, type text, validrx int, slotOffset int, channelOffset int, priority int, numTxAttempts int, lqi int, rssi int, crc int)''')
             
              #schedule modification
             c.execute('''CREATE TABLE schedule
@@ -173,7 +173,7 @@ class ParserEvent(parser.Parser):
             slotOffset      = data[35]
             channelOffset   = data[36]
             priority        = data[37]
-            nb_retx         = data[38]
+            numTxAttempts   = data[38]
             lqi             = data[39]
             rssi            = data[40]
             crc             = data[41]
@@ -181,11 +181,11 @@ class ParserEvent(parser.Parser):
             if 'dbfilename' in globals():
                 conn = sqlite3.connect(dbfilename)
                 c = conn.cursor()
-                c.execute("""INSERT INTO pkt (asn,moteid,event,src,dest,type,validrx, slotOffset,channelOffset,priority,nb_retx,lqi,rssi,crc) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""", (asn, moteid, event, src, dest, type, validRx, slotOffset, channelOffset, priority, nb_retx, lqi, rssi, crc))
+                c.execute("""INSERT INTO pkt (asn,moteid,event,src,dest,type,validrx, slotOffset,channelOffset,priority,numTxAttempts,lqi,rssi,crc) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""", (asn, moteid, event, src, dest, type, validRx, slotOffset, channelOffset, priority, numTxAttempts, lqi, rssi, crc))
                 conn.commit()
                 conn.close()
             else:
-                log.info("1 {0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11} {12} {13}".format(asn, moteid, event, src, dest, type, validRx, slotOffset, channelOffset, priority, nb_retx, lqi, rssi, crc))
+                log.info("1 {0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11} {12} {13}".format(asn, moteid, event, src, dest, type, validRx, slotOffset, channelOffset, priority, numTxAttempts, lqi, rssi, crc))
                                 
         elif (typeStat == 2):
             if (len(data) != 39):
