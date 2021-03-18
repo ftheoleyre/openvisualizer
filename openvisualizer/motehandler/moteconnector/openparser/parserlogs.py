@@ -19,7 +19,6 @@ log = logging.getLogger('ParserLogs')
 log.setLevel(logging.ERROR)
 log.addHandler(logging.NullHandler())
 
-
 class ParserLogs(Parser):
     HEADER_LENGTH = 1
 
@@ -103,7 +102,7 @@ class ParserLogs(Parser):
             MOTEID=mote_id,
             ERROR_DESC=self._translate_log_description(error_code, arg1, arg2),
         )
-
+        
         # log
         if self.severity == self.LogSeverity.SEVERITY_VERBOSE:
             log.verbose(output)
