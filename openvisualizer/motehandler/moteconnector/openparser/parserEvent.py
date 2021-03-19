@@ -68,8 +68,12 @@ class ParserEvent(parser.Parser):
             
             #SIXTOP STATE CHANGED
             c.execute('''CREATE TABLE sixtopStates
-            (asn int, moteid text, state int)''')
-            
+            (asn int, moteid text, state text)''')
+                        
+            #FRAME INTERRUPT
+            c.execute('''CREATE TABLE frameInterrupt
+            (asn int, moteid text, intrpt text, state text)''')
+       
                #end
             conn.commit()
             conn.close()
@@ -237,6 +241,49 @@ class ParserEvent(parser.Parser):
             return("NONE")
         return(str(code))
         
+    @staticmethod
+    def sixtopStateString(code):
+        if (code == 0):
+            return("IDLE")
+        if (code == 1):
+            return("WAIT_ADDREQUEST_SENDDONE")
+        if (code == 2):
+            return("WAIT_DELETEREQUEST_SENDDONE")
+        if (code == 3):
+            return("WAIT_RELOCATEREQUEST_SENDDONE")
+        if (code == 4):
+            return("WAIT_COUNTREQUEST_SENDDONE")
+        if (code == 5):
+            return("WAIT_LISTREQUEST_SENDDONE")
+        if (code == 6):
+            return("WAIT_CLEARREQUEST_SENDDONE")
+        if (code == 7):
+            return("WAIT_ADDRESPONSE")
+        if (code == 8):
+            return("WAIT_DELETERESPONSE")
+        if (code == 9):
+            return("WAIT_RELOCATERESPONSE")
+        if (code == 10):
+            return("WAIT_COUNTRESPONSE")
+        if (code == 11):
+            return("WAIT_LISTRESPONSE")
+        if (code == 12):
+            return("WAIT_CLEARRESPONSE")
+        if (code == 13):
+            return("WAIT_ADDREQUEST")
+        if (code == 255):
+            return("NONE")
+        return(str(code))
+        
+    @staticmethod
+    def frameInterruptString(code):
+        if (code == 0):
+            return("STARTOFFRAME")
+        if (code == 1):
+            return("ENDOFFRAME")
+        return(str(code))       
+
+    
 
     def parse_input(self, data):
 
@@ -353,7 +400,7 @@ class ParserEvent(parser.Parser):
                 log.error("Incorrect length for a stat_sixtopchangeState in ParserEvent.py ({0})".format(len(data)))
                 return 'error', data
 
-            state           = data[14]
+            state           = ParserEvent.sixtopStateString(data[14])
             
             if 'dbfilename' in globals():
                 conn = sqlite3.connect(dbfilename)
@@ -364,8 +411,26 @@ class ParserEvent(parser.Parser):
             else:
                 log.info("5 {0} {1} {2}".format(asn, moteid, state))
                 
+        #SIXTOP STATE CHANGED
+        elif (typeStat == 6):
+            if (len(data) != 16):
+                log.error("Incorrect length for a frameInterrupt in ParserEvent.py ({0})".format(len(data)))
+                return 'error', data
 
+            intrpt = ParserEvent.frameInterruptString(data[14])
+            state  = ParserEvent.sixtopStateString(data[15])
 
+            if 'dbfilename' in globals():
+                conn = sqlite3.connect(dbfilename)
+                c = conn.cursor()
+                c.execute("""INSERT INTO frameInterrupt (asn, moteid, intrpt, state) VALUES (?,?,?,?)""", (asn, moteid, intrpt, state))
+                conn.commit()
+                conn.close()
+            else:
+                log.info("5 {0} {1} {2} {3}".format(asn, moteid, intrpt, state))
+                
+
+            
         else:
             log.error('unknown statistic type={0}'.format(typeStat))
            
