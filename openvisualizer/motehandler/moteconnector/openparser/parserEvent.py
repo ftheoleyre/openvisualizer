@@ -283,7 +283,69 @@ class ParserEvent(parser.Parser):
             return("ENDOFFRAME")
         return(str(code))       
 
-    
+    @staticmethod
+    def ieee154eStateString(code):
+        if (code == 0):
+            return("S_SLEEP")
+        if (code == 1):
+            return("S_SYNCLISTEN")
+        if (code == 2):
+            return("S_SYNCRX")
+        if (code == 3):
+            return("S_SYNCPROC")
+        if (code == 4):
+            return("S_TXDATAOFFSET")
+        if (code == 5):
+            return("S_TXDATAPREPARE")
+        if (code == 6):
+            return("S_TXDATAREADY")
+        if (code == 7):
+            return("S_TXDATADELAY")
+        if (code == 8):
+            return("S_TXDATA")
+        if (code == 9):
+            return("S_RXACKOFFSET")
+        if (code == 10):
+            return("S_RXACKPREPARE")
+        if (code == 11):
+            return("S_RXACKREADY")
+        if (code == 12):
+            return("S_RXACKLISTEN")
+        if (code == 13):
+            return("S_RXACK")
+        if (code == 14):
+            return("S_TXPROC")
+        if (code == 15):
+            return("S_RXDATAOFFSET")
+        if (code == 16):
+            return("S_RXDATAPREPARE")
+        if (code == 17):
+            return("S_RXDATAREADY")
+        if (code == 18):
+            return("S_RXDATALISTEN")
+        if (code == 19):
+            return("S_RXDATA")
+        if (code == 20):
+            return("S_TXACKOFFSET")
+        if (code == 21):
+            return("S_TXACKPREPARE")
+        if (code == 22):
+            return("S_TXACKREADY")
+        if (code == 23):
+            return("S_TXACKDELAY")
+        if (code == 24):
+            return("S_TXACK")
+        if (code == 25):
+            return("S_RXPROC")
+        if (code == 26):
+            return("S_CCATRIGGER")
+        if (code == 27):
+            return("S_CCATRIGGERED")
+        if (code == 255):
+            return("NONE")
+        return(str(code))
+     
+     
 
     def parse_input(self, data):
 
@@ -418,7 +480,7 @@ class ParserEvent(parser.Parser):
                 return 'error', data
 
             intrpt = ParserEvent.frameInterruptString(data[14])
-            state  = ParserEvent.sixtopStateString(data[15])
+            state  = ParserEvent.ieee154eStateString(data[15])
 
             if 'dbfilename' in globals():
                 conn = sqlite3.connect(dbfilename)
