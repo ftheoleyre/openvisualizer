@@ -130,16 +130,6 @@ class BspRadio(BspModule, EventBusClient):
     def cmd_rf_off(self):
         """ Emulates: void radio_rfOff() """
         
-        if (self.frameOnGoing > 0):
-            print("")
-            print("")
-            print("")
-            print("error ! no rf off when a signal is ongoing")
-            print("{0}, time {1}".format(self.motehandler.get_id(), self.timeline.get_current_time()))
-            print("")
-            print("")
-            return
-            
         # log the activity
         if self.log.isEnabledFor(logging.DEBUG):
             self.log.debug('cmd_rf_off')
