@@ -89,6 +89,7 @@ class MoteProbe(threading.Thread):
                     continue
                 except Exception as err:
                     log.warning(err)
+                    print(err)
                     time.sleep(1)
                     break
                 else:
@@ -97,12 +98,16 @@ class MoteProbe(threading.Thread):
                     self.serial.done_reading()
             log.warning('{}; exit loop'.format(self._portname))
         except Exception as err:
+            print("crash")
             err_msg = format_crash_message(self.name, err)
             log.critical(err_msg)
             sys.exit(-1)
         finally:
-            self._detach()
-
+            log.critical("cannot attach one of the motes, stops openvisualizer")
+            #self._detach()
+            sys.exit(-1)
+            
+            
     # ======================== public ==================================
 
     @property
