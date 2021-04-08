@@ -25,8 +25,8 @@ log.addHandler(logging.NullHandler())
 # ============================ class ===================================
 
 class IotlabMoteProbe(MoteProbe):
-    IOTLAB_SSH_TIMEOUT = 2  # seconds
-    IOTLAB_SOCKET_TIMEOUT = 2  # seconds
+    IOTLAB_SSH_TIMEOUT = 4  # seconds
+    IOTLAB_SOCKET_TIMEOUT = 4  # seconds
     IOTLAB_MOTE_TCP_PORT = 20000
 
     IOTLAB_FRONTEND_BASE_URL = 'iot-lab.info'
