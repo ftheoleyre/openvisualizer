@@ -215,10 +215,13 @@ class StateBackoff(StateElem):
         self.data[0]['backoff'] = notif.backoff
 
 
+
 class StateQueueRow(StateElem):
     def update(self, notif=None, creator=None, owner=None):
         super(StateQueueRow, self).update()
 
+        assert notif
+        
         if len(self.data) == 0:
             self.data.append({})
 
@@ -229,40 +232,11 @@ class StateQueueRow(StateElem):
             self.data[0]['owner'] = TypeComponent()
         self.data[0]['owner'].update(owner)
 
+        if 'addr' not in self.data[0]:
+            self.data[0]['l2addr'] = TypeAddr()
+        self.data[0]['l2addr'].update(notif.l2addr_type, notif.l2addr_bodyH, notif.l2addr_bodyL)
 
-class StateQueue(StateElem):
-
-    def __init__(self):
-        super(StateQueue, self).__init__()
-
-        for i in range(20):
-            self.data.append(StateQueueRow())
-
-    def update(self, notif=None, creator=None, owner=None):
-        super(StateQueue, self).update()
-
-        assert notif
-
-        self.data[0].update(notif.creator_0, notif.owner_0)
-        self.data[1].update(notif.creator_1, notif.owner_1)
-        self.data[2].update(notif.creator_2, notif.owner_2)
-        self.data[3].update(notif.creator_3, notif.owner_3)
-        self.data[4].update(notif.creator_4, notif.owner_4)
-        self.data[5].update(notif.creator_5, notif.owner_5)
-        self.data[6].update(notif.creator_6, notif.owner_6)
-        self.data[7].update(notif.creator_7, notif.owner_7)
-        self.data[8].update(notif.creator_8, notif.owner_8)
-        self.data[9].update(notif.creator_9, notif.owner_9)
-        self.data[10].update(notif.creator_10, notif.owner_10)
-        self.data[11].update(notif.creator_11, notif.owner_11)
-        self.data[12].update(notif.creator_12, notif.owner_12)
-        self.data[13].update(notif.creator_13, notif.owner_13)
-        self.data[14].update(notif.creator_14, notif.owner_14)
-        self.data[15].update(notif.creator_15, notif.owner_15)
-        self.data[16].update(notif.creator_16, notif.owner_16)
-        self.data[17].update(notif.creator_17, notif.owner_17)
-        self.data[18].update(notif.creator_18, notif.owner_18)
-        self.data[19].update(notif.creator_19, notif.owner_19)
+        self.data[0]['length'] = notif.length
 
 
 class StateNeighborsRow(StateElem):

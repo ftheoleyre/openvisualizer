@@ -167,48 +167,15 @@ class ParserStatus(parser.Parser):
             3,
             8,
             'QueueRow',
-            '<BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB',
+            '<BBBBQQH',
             [
-                'creator_0',  # B
-                'owner_0',  # B
-                'creator_1',  # B
-                'owner_1',  # B
-                'creator_2',  # B
-                'owner_2',  # B
-                'creator_3',  # B
-                'owner_3',  # B
-                'creator_4',  # B
-                'owner_4',  # B
-                'creator_5',  # B
-                'owner_5',  # B
-                'creator_6',  # B
-                'owner_6',  # B
-                'creator_7',  # B
-                'owner_7',  # B
-                'creator_8',  # B
-                'owner_8',  # B
-                'creator_9',  # B
-                'owner_9',  # B
-                'creator_10',  # B
-                'owner_10',  # B
-                'creator_11',  # B
-                'owner_11',  # B
-                'creator_12',  # B
-                'owner_12',  # B
-                'creator_13',  # B
-                'owner_13',  # B
-                'creator_14',  # B
-                'owner_14',  # B
-                'creator_15',  # B
-                'owner_15',  # B
-                'creator_16',  # B
-                'owner_16',  # B
-                'creator_17',  # B
-                'owner_17',  # B
-                'creator_18',  # B
-                'owner_18',  # B
-                'creator_19',  # B
-                'owner_19',  # B
+                'row', #B
+                'creator',  # B
+                'owner',  # B
+                'l2addr_type',  # B
+                'l2addr_bodyH',  # Q
+                'l2addr_bodyL',  # Q
+                'length',  # H
             ],
         )
         self._add_fields_parser(

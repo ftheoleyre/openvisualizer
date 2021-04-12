@@ -15,7 +15,7 @@ import threading
 from openvisualizer.eventbus.eventbusclient import EventBusClient
 from openvisualizer.motehandler.moteconnector.openparser import parserstatus
 from openvisualizer.motehandler.motestate.elements import StateOutputBuffer, StateAsn, StateJoined, StateMacStats, \
-    StateTable, StateScheduleRow, StateBackoff, StateQueue, StateNeighborsRow, StateIsSync, StateIdManager, \
+    StateTable, StateScheduleRow, StateBackoff, StateQueueRow, StateNeighborsRow, StateIsSync, StateIdManager, \
     StateMyDagRank, StateKaPeriod, StateMSF
 
 log = logging.getLogger('MoteState')
@@ -145,7 +145,18 @@ class MoteState(EventBusClient):
             ),
         )
         self.state[self.ST_BACKOFF] = StateBackoff()
-        self.state[self.ST_QUEUE] = StateQueue()
+        self.state[self.ST_QUEUE] = StateTable(
+            StateQueueRow,
+            column_order='.'.join(
+                [
+                    'creator',
+                    'owner',
+                    'type',
+                    'l2addr',
+                    'length',
+                ],
+            ),
+        )
         self.state[self.ST_NEIGHBORS] = StateTable(
             StateNeighborsRow,
             column_order='.'.join(

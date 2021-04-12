@@ -11,99 +11,69 @@ from openvisualizer.motehandler.motestate.motestate import MoteState
 
 
 @Plugin.record_view("pktqueue")
-class PktQueue(View):
-    def __init__(self, proxy, mote_id, refresh_rate, graphic=False):
+class Schedule(View):
+    COLOR_LINE_MARGIN = 15
+    COLOR_HDR_MARGIN = 7.5
+
+    def __init__(self, proxy, mote_id, refresh_rate):
         super(PktQueue, self).__init__(proxy, mote_id, refresh_rate)
 
         self.title = 'pktqueue'
-        self.graphic = graphic
 
-        # graphical view
-        self.pkt_history = None
-        self._build_pkt_history()
+    def render(self, ms=None):
+        yb = self.term.bold_yellow
+        n = self.term.normal
+
+        columns = []
+        columns += ['|' + yb + '  Type  ' + n]
+        columns += ['|' + yb + ' S ' + n]
+        columns += ['|' + yb + ' Creator ' + n]
+        columns += ['|' + yb + ' Owner ' + n]
+        columns += ['|' + yb + ' Addr ' + n + '|']
+
+        header = ''.join(columns)
+        hdr_line = ''.join(['-'] * (len(header) - len(columns) * self.COLOR_LINE_MARGIN))
+
+        super(PktQueue, self).render()
+        pktqueue_rows = json.loads(ms[MoteState.ST_QUEUE])
+
+        active_rows = []
+
+        for row in queue_rows:
+            if row['creator'] != '0':
+                    active_rows.append(row)
+
+        #active_rows.sort(key=lambda x: x['slotOffset'])
+
+        w = int(self.term.width / 2)
+
+        print(hdr_line.rjust(abs(w + int(len(hdr_line) / 2))))
+        print(header.rjust(abs(w + int(len(header) / 2) + int(ceil(len(columns) * self.COLOR_HDR_MARGIN)))))
+        print(hdr_line.rjust(abs(w + int(len(hdr_line) / 2))))
+
+        for r in active_rows:
+            c, shift = self._get_row_color(str(r['creator'])[2:])
+            # r_str = '|{}{:^8s}{}|{:^3s}|{:^3s}|{:^6s}|{:^8s}|{:^6s}|{:^14s}|{:^5s}|{:^9s}|{:^5s}|'.format(
+            r_str = '|{}{:^8s}|{:^6s}|{:^14s}|'.format(
+                c, str(
+                str(r['creator']),
+                str(r['owner']),
+                str(r['addr']))
+            )
+
+        print('\n')
+        
 
     def run(self):
         logging.debug("Enabling blessed fullscreen")
         with self.term.fullscreen(), self.term.cbreak(), self.term.hidden_cursor():
-            super(PktQueue, self).run()
+            super(Schedule, self).run()
         logging.debug("Exiting blessed fullscreen")
 
-    def _build_pkt_history(self):
-        self.prv_width = self.term.width
-
-        logging.info('Change in size terminal, recalculate figures')
-
-        if self.pkt_history is None:
-            self.pkt_history = deque([0] * (self.term.width - 10))
-
-        elif len(self.pkt_history) < self.term.width - 10:
-            logging.debug("Appending to history: {}".format(self.term.width - 10 - len(self.pkt_history)))
-            old = len(self.pkt_history)
-            for i in range(self.term.width - 10 - len(self.pkt_history)):
-                self.pkt_history.appendleft(0)
-            logging.debug("Old {} vs new {}".format(old, len(self.pkt_history)))
-
-        elif len(self.pkt_history) > self.term.width - 10:
-            logging.debug("Popping from history: {}".format(len(self.pkt_history) - (self.term.width - 10)))
-            old = len(self.pkt_history)
-            for i in range(len(self.pkt_history) - (self.term.width - 10)):
-                _ = self.pkt_history.popleft()
-            logging.debug("Old {} vs new {}".format(old, len(self.pkt_history)))
-
+    def _get_row_color(self, cell_type):
+        if '(TXRX)' == cell_type:
+            return self.term.purple, 12
+        elif '(TX)' == cell_type:
+            return self.term.blue, 6
         else:
-            # they are equal, this should not happen
-            pass
-
-        # (re)build axis
-        self.axis = ''.join(['-'] * (self.term.width - 10)) + '>'
-
-    def render(self, ms=None):
-        super(PktQueue, self).render()
-        queue = json.loads(ms[MoteState.ST_QUEUE])
-
-        if not self.graphic:
-            width = int(self.term.width / 2)
-            print('{:>{}}    {}    {}'.format('OWNER', width - 5, '|', 'CREATOR'))
-
-            bar = '----------------------------'
-            print('{:>{}}'.format(bar, width + int(len(bar) / 2)))
-            for row in queue:
-                print('{:>{}}    {}    {}'.format(row['owner'], width - 5, '|', row['creator']))
-
-        else:
-            if self.term.width != self.prv_width:
-                self._build_pkt_history()
-
-            pkt_count = 0
-            for row in queue:
-                if row['creator'] != '0 (NULL)':
-                    logging.debug('Occupied buffer space')
-                    pkt_count += 1
-
-            self.pkt_history.popleft()
-            self.pkt_history.append(pkt_count)
-            logging.info("PktQueue history: {}".format(self.pkt_history))
-
-            grid = self._build_grid(len(queue))
-
-            print(self.term.bold + ' Every cursor block \'_\' represents: {}s'.format(
-                self.refresh_rate) + self.term.normal)
-            print('\n', end='')
-            for row in grid:
-                line = ''.join([' ' if x == 0 else self.term.on_green + ' ' + self.term.normal for x in row])
-                if max(row) > 0:
-                    print(self.term.move_right(4) + line.rjust(int(self.term.width / 2) + int(len(line) / 2)))
-
-            print(self.axis.rjust(int(self.term.width / 2) + int(len(self.axis) / 2)))
-            axis_text = '<-- time frame: {}s -->'.format(len(self.axis) * self.refresh_rate)
-            print(axis_text.rjust(int(self.term.width / 2) + int(len(axis_text) / 2)))
-
-            sys.stdout.flush()
-
-    def _build_grid(self, queue_depth):
-        grid = [[0 for x in range(len(self.pkt_history))] for y in range(queue_depth)]
-        for x, pc in enumerate(self.pkt_history):
-            if pc > 0:
-                for i in range(pc):
-                    grid[len(grid) - 1 - i][x] = 1
-        return grid
+            return self.term.red, 6
