@@ -107,7 +107,7 @@ class MoteProbe(threading.Thread):
         finally:
             log.critical("cannot attach port {0}, stops openvisualizer (pid {1}, {2})".format(self._portname, os.getpid(), os.getppid()))
             #self._detach()
-            #os.kill(os.getpid(), signal.SIGKILL)
+            os.kill(os.getpid(), signal.SIGKILL)            
             sys.exit(-1)
             
             

@@ -63,8 +63,8 @@ class ParserEvent(parser.Parser):
            
             #SIXTOP
             c.execute('''CREATE TABLE sixtop
-            (asn int, moteid text, event text, neighbor text, neighbor2 text,
-            type int, command int, seqNum int, code int, numCells int)''')
+            (asn int, moteid text, seqNum int, event text, neighbor text, neighbor2 text,
+            type int, command int, code int, numCells int)''')
             
             #SIXTOP STATE CHANGED
             c.execute('''CREATE TABLE sixtopStates
