@@ -167,7 +167,7 @@ class ParserStatus(parser.Parser):
             3,
             8,
             'QueueRow',
-            '<BBBBQQH',
+            '<BBBBQQHBBBBHH',
             [
                 'row', #B
                 'creator',  # B
@@ -176,6 +176,12 @@ class ParserStatus(parser.Parser):
                 'l2addr_bodyH',  # Q
                 'l2addr_bodyL',  # Q
                 'length',  # H
+                'l2_numTxAttempts', #B
+                'l2_frameType', #B
+                'l2_sixtop_command', #B
+                'createdAsn_4',  # B
+                'createdAsn_2_3',  # H
+                'createdAsn_0_1',  # H
             ],
         )
         self._add_fields_parser(

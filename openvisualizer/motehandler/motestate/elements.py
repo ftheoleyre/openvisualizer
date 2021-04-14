@@ -219,7 +219,7 @@ class StateBackoff(StateElem):
 class StateQueueRow(StateElem):
     def update(self, notif=None, creator=None, owner=None):
         super(StateQueueRow, self).update()
-
+        
         assert notif
         
         if len(self.data) == 0:
@@ -227,18 +227,27 @@ class StateQueueRow(StateElem):
 
         if 'creator' not in self.data[0]:
             self.data[0]['creator'] = TypeComponent()
-        self.data[0]['creator'].update(creator)
+        self.data[0]['creator'].update(notif.creator)
         if 'owner' not in self.data[0]:
             self.data[0]['owner'] = TypeComponent()
-        self.data[0]['owner'].update(owner)
+        self.data[0]['owner'].update(notif.owner)
 
         if 'addr' not in self.data[0]:
             self.data[0]['l2addr'] = TypeAddr()
         self.data[0]['l2addr'].update(notif.l2addr_type, notif.l2addr_bodyH, notif.l2addr_bodyL)
 
         self.data[0]['length'] = notif.length
+        self.data[0]['l2_numTxAttempts'] = notif.l2_numTxAttempts
+        self.data[0]['l2_frameType'] = notif.l2_frameType
+        self.data[0]['l2_sixtop_command'] = notif.l2_sixtop_command
+                       
+        if 'createdAsn' not in self.data[0]:
+            self.data[0]['createdAsn'] = TypeAsn()
+        self.data[0]['createdAsn'].update(notif.createdAsn_0_1, notif.createdAsn_2_3, notif.createdAsn_4)
 
-
+                        
+          
+    
 class StateNeighborsRow(StateElem):
     def update(self, notif=None, creator=None, owner=None):
         super(StateNeighborsRow, self).update()

@@ -154,6 +154,10 @@ class MoteState(EventBusClient):
                     'type',
                     'l2addr',
                     'length',
+                    'l2_numTxAttempts',
+                    'l2_frameType',
+                    'l2_sixtop_command',
+                    'createdasn',
                 ],
             ),
         )

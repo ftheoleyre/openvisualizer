@@ -9,6 +9,8 @@ import logging
 import sys
 import threading
 import time
+import os
+import signal
 
 from pydispatch import dispatcher
 
@@ -103,8 +105,9 @@ class MoteProbe(threading.Thread):
             log.critical(err_msg)
             sys.exit(-1)
         finally:
-            log.critical("cannot attach one of the motes, stops openvisualizer")
+            log.critical("cannot attach port {0}, stops openvisualizer (pid {1}, {2})".format(self._portname, os.getpid(), os.getppid()))
             #self._detach()
+            #os.kill(os.getpid(), signal.SIGKILL)
             sys.exit(-1)
             
             
