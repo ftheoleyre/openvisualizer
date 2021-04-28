@@ -45,7 +45,6 @@ class BspRadio(BspModule, EventBusClient):
     INTR_CCAEND_SELF = 'radio.ccaend_fromSelf'
 
     nbActiveSignals = 0      # nb of active signals on the medium (=0 -> idle)
-    frameOnGoing    = 0      # nb of startofframe that have not yet resulted in endofframe (to not trigger a CCA if the radio is busy for RXING)
     
     def __init__(self, motehandler):
 
@@ -153,7 +152,8 @@ class BspRadio(BspModule, EventBusClient):
            self.log.debug('cmd_trigger_cca')
         
         #a signal is already currently captured -> no need to make a CCA -> direct notification
-        if (self.frameOnGoing >= 1):
+        if (self.nbActiveSignals >= 1):
+            self.log.error("BUSY: {0} signals".format(self.nbActiveSignals))
             self.motehandler.mote.radio_isr_CCAend(RadioState.CCA_RXING)
             return;
     
@@ -323,10 +323,7 @@ class BspRadio(BspModule, EventBusClient):
 
         # indicate to the mote
         self.motehandler.mote.radio_isr_startFrame(counter_val)
-         
-        # a frame is currently received
-        self.frameOnGoing = self.frameOnGoing + 1
-        
+                 
         # do NOT kick the scheduler
         return True
 
@@ -352,9 +349,6 @@ class BspRadio(BspModule, EventBusClient):
 
     def intr_end_of_frame_from_propagation(self):
 
-        # a frame was received
-        self.frameOnGoing = self.frameOnGoing - 1
-       
         # signal end of frame to mote
         counter_val = self.sctimer.cmd_read_counter()
                 
