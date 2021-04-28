@@ -345,16 +345,20 @@
 
                                             // Queue responsive table
                                             if (hasJson) {
-                                                var tbl_body = "<table class=\"table table-striped table-bordered table-hover\" id=\"dataTables-example\"><thead><tr><th>Creator</th><th>Owner</th><th>L2addr</th></th><th>Length</th><th>l2numTx</th><th>l2_frameType</th><th>l2_sixtop</th><th>ASN creation</th></tr></thead><tbody>";
+                                                var tbl_body = "<table class=\"table table-striped table-bordered table-hover\" id=\"dataTables-example\"><thead><tr><th>Creator</th><th>Owner</th><th>L2addr</th><th>l3dest</th></th><th>Length</th><th>l2numTx</th><th>l2_frameType</th><th>6top_type</th><th>6top_cmd</th><th>6top_retcode</th><th>6top_cellopt</th><th>ASN creation</th></tr></thead><tbody>";
 
                                                 $.each(queueJson, function() {
                                                     var tbl_row = "<td>" + this['creator'] + "</td>";
                                                     tbl_row += "<td>" + this['owner'] + "</td>";
                                                     tbl_row += "<td>" + this['l2addr'] + "</td>";
+                                                    tbl_row += "<td>" + this['l3dest'] + "</td>";
                                                     tbl_row += "<td>" + this['length'] + "</td>";
                                                     tbl_row += "<td>" + this['l2_numTxAttempts'] + "</td>";
                                                     tbl_row += "<td>" + this['l2_frameType'] + "</td>";
+                                                    tbl_row += "<td>" + this['l2_sixtop_messageType'] + "</td>";
                                                     tbl_row += "<td>" + this['l2_sixtop_command'] + "</td>";
+                                                    tbl_row += "<td>" + this['l2_sixtop_returnCode'] + "</td>";
+                                                    tbl_row += "<td>" + this['l2_sixtop_cellOptions'] + "</td>";
                                                     tbl_row += "<td>" + this['createdAsn'] + "</td>";
                                                     tbl_body += "<tr class=\"odd gradeX\">" + tbl_row + "</tr>";
                                                 });

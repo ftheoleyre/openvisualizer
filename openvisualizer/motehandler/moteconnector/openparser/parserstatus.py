@@ -167,7 +167,7 @@ class ParserStatus(parser.Parser):
             3,
             8,
             'QueueRow',
-            '<BBBBQQHBBBBHH',
+            '<BBBBQQBQQBBBBBBBBHH',  
             [
                 'row', #B
                 'creator',  # B
@@ -175,10 +175,16 @@ class ParserStatus(parser.Parser):
                 'l2addr_type',  # B
                 'l2addr_bodyH',  # Q
                 'l2addr_bodyL',  # Q
-                'length',  # H
+                'l3dest_type',  # B
+                'l3dest_bodyH',  # Q
+                'l3dest_bodyL',  # Q
+                'length',  # B
                 'l2_numTxAttempts', #B
                 'l2_frameType', #B
+                'l2_sixtop_messageType', #B
                 'l2_sixtop_command', #B
+                'l2_sixtop_returnCode', #B
+                'l2_sixtop_cellOptions', #B
                 'createdAsn_4',  # B
                 'createdAsn_2_3',  # H
                 'createdAsn_0_1',  # H
@@ -275,11 +281,12 @@ class ParserStatus(parser.Parser):
 
                 # log
                 log.debug("parsing {0}, ({1} bytes) as {2}".format(data, len(data), key.name))
-                
+
                 # parse byte array
                 try:
                     fields = struct.unpack(key.structure, ''.join([chr(c) for c in data]))
                 except struct.error as err:
+                    print(err)                    
                     raise ParserException(
                         ParserException.ExceptionType.DESERIALIZE.value,
                         "could not extract tuple {0} by applying {1} to {2}; error: {3}".format(

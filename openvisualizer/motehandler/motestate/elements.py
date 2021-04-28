@@ -2,7 +2,7 @@ import json
 import time
 from abc import ABCMeta
 
-from openvisualizer.motehandler.motestate.opentype import TypeAsn, OpenType, TypeCellType, TypeAddr, TypeComponent, \
+from openvisualizer.motehandler.motestate.opentype import TypeAsn, OpenType, TypeFrameType, TypeCellType, TypeAddr, TypeComponent, \
     TypeRssi
 
 
@@ -232,15 +232,26 @@ class StateQueueRow(StateElem):
             self.data[0]['owner'] = TypeComponent()
         self.data[0]['owner'].update(notif.owner)
 
-        if 'addr' not in self.data[0]:
+        if 'l2addr' not in self.data[0]:
             self.data[0]['l2addr'] = TypeAddr()
         self.data[0]['l2addr'].update(notif.l2addr_type, notif.l2addr_bodyH, notif.l2addr_bodyL)
+        
+        if 'l3dest' not in self.data[0]:
+            self.data[0]['l3dest'] = TypeAddr()
+        self.data[0]['l3dest'].update(notif.l3dest_type, notif.l3dest_bodyH, notif.l3dest_bodyL)
 
         self.data[0]['length'] = notif.length
         self.data[0]['l2_numTxAttempts'] = notif.l2_numTxAttempts
-        self.data[0]['l2_frameType'] = notif.l2_frameType
+        
+        if 'l2_frameType' not in self.data[0]:
+            self.data[0]['l2_frameType'] = TypeFrameType()
+        self.data[0]['l2_frameType'].update(notif.l2_frameType)
+        
+        self.data[0]['l2_sixtop_messageType'] = notif.l2_sixtop_messageType
         self.data[0]['l2_sixtop_command'] = notif.l2_sixtop_command
-                       
+        self.data[0]['l2_sixtop_returnCode'] = notif.l2_sixtop_returnCode
+        self.data[0]['l2_sixtop_cellOptions'] = notif.l2_sixtop_cellOptions
+    
         if 'createdAsn' not in self.data[0]:
             self.data[0]['createdAsn'] = TypeAsn()
         self.data[0]['createdAsn'].update(notif.createdAsn_0_1, notif.createdAsn_2_3, notif.createdAsn_4)

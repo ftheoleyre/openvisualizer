@@ -27,7 +27,7 @@ class TypeRssi(OpenType):
 class TypeComponent(OpenType):
     COMPONENT_NULL = 0x00
     COMPONENT_OPENWSN = 0x01
-
+    
     # cross-layers
     COMPONENT_IDMANAGER = 0x02
     COMPONENT_OPENQUEUE = 0x03
@@ -48,38 +48,41 @@ class TypeComponent(OpenType):
     COMPONENT_NEIGHBORS = 0x0d
     COMPONENT_SCHEDULE = 0x0e
     COMPONENT_SIXTOP_RES = 0x0f
+    COMPONENT_MSF = 0x10
     # IPHC
-    COMPONENT_OPENBRIDGE = 0x10
-    COMPONENT_IPHC = 0x11
-    COMPONENT_FRAG = 0x12
+    COMPONENT_OPENBRIDGE = 0x11
+    COMPONENT_IPHC = 0x12
+    COMPONENT_FRAG = 0x13
     # IPv6
-    COMPONENT_FORWARDING = 0x13
-    COMPONENT_ICMPv6 = 0x14
-    COMPONENT_ICMPv6ECHO = 0x15
-    COMPONENT_ICMPv6ROUTER = 0x16
-    COMPONENT_ICMPv6RPL = 0x17
+    COMPONENT_FORWARDING = 0x14
+    COMPONENT_ICMPv6 = 0x15
+    COMPONENT_ICMPv6ECHO = 0x16
+    COMPONENT_ICMPv6ROUTER = 0x17
+    COMPONENT_ICMPv6RPL = 0x18
     # TRAN
-    COMPONENT_OPENUDP = 0x18
-    COMPONENT_OPENCOAP = 0x19
+    COMPONENT_OPENUDP = 0x19
+    COMPONENT_SOCK_TO_UDP = 0x1a
+    COMPONENT_UDP_TO_SOCK = 0x1b,
+    COMPONENT_OPENCOAP = 0x1c
     # secure join
-    COMPONENT_CJOIN = 0x1a
-    COMPONENT_OPENOSCOAP = 0x1b
+    COMPONENT_CJOIN = 0x1d
+    COMPONENT_OSCORE = 0x1e
     # applications
-    COMPONENT_C6T = 0x1c
-    COMPONENT_CEXAMPLE = 0x1d
-    COMPONENT_CINFO = 0x1e
-    COMPONENT_CLEDS = 0x1f
-    COMPONENT_CSENSORS = 0x20
-    COMPONENT_CSTORM = 0x21
-    COMPONENT_CWELLKNOWN = 0x22
-    COMPONENT_UECHO = 0x23
-    COMPONENT_UINJECT = 0x24
-    COMPONENT_RRT = 0x25
-    COMPONENT_SECURITY = 0x26
-    COMPONENT_USERIALBRIDGE = 0x27
-    COMPONENT_UEXPIRATION = 0x28
-    COMPONENT_UMONITOR = 0x29
-    COMPONENT_CINFRARED = 0x2a
+    COMPONENT_C6T = 0x1f
+    COMPONENT_CEXAMPLE = 0x20
+    COMPONENT_CINFO = 0x21
+    COMPONENT_CLEDS = 0x22
+    COMPONENT_CSENSORS = 0x23
+    COMPONENT_CSTORM = 0x24
+    COMPONENT_CWELLKNOWN = 0x25
+    COMPONENT_UECHO = 0x26
+    COMPONENT_UINJECT = 0x27
+    COMPONENT_RRT = 0x28
+    COMPONENT_SECURITY = 0x29
+    COMPONENT_USERIALBRIDGE = 0x2a
+    COMPONENT_UEXPIRATION = 0x2b
+    COMPONENT_UMONITOR = 0x2c
+    COMPONENT_CINFRARED = 0x2d
 
     def __init__(self):
         super(TypeComponent, self).__init__()
@@ -123,13 +126,15 @@ class TypeComponent(OpenType):
 
         elif type == self.COMPONENT_SIXTOP:
             self.desc = 'SIXTOP'
-        elif type == self.COMPONENT_SIXTOP_RES:
-            self.desc = 'SIXTOP_RES'
         elif type == self.COMPONENT_NEIGHBORS:
             self.desc = 'NEIGHBORS '
         elif type == self.COMPONENT_SCHEDULE:
             self.desc = 'SCHEDULE'
-
+        elif type == self.COMPONENT_SIXTOP_RES:
+            self.desc = 'SIXTOP_RES'
+        elif type == self.COMPONENT_MSF:
+            self.desc = 'MSF'
+            
         elif type == self.COMPONENT_OPENBRIDGE:
             self.desc = 'OPENBRIDGE'
         elif type == self.COMPONENT_IPHC:
@@ -150,8 +155,17 @@ class TypeComponent(OpenType):
 
         elif type == self.COMPONENT_OPENUDP:
             self.desc = 'OPENUDP'
+        elif type == self.COMPONENT_SOCK_TO_UDP:
+            self.desc = 'SOCK_TO_UDP'
+        elif type == self.COMPONENT_UDP_TO_SOCK:
+            self.desc = 'UDP_TO_SOCK'
         elif type == self.COMPONENT_OPENCOAP:
             self.desc = 'OPENCOAP'
+                   
+        elif type == self.COMPONENT_CJOIN:
+            self.desc = 'CJOIN'
+        elif type == self.COMPONENT_OSCORE:
+            self.desc = 'OSCORE'
 
         elif type == self.COMPONENT_C6T:
             self.desc = 'C6T'
@@ -163,34 +177,27 @@ class TypeComponent(OpenType):
             self.desc = 'CLEDS'
         elif type == self.COMPONENT_CSENSORS:
             self.desc = 'CSENSORS'
+        elif type == self.COMPONENT_CSTORM:
+            self.desc = 'CSTORM'
         elif type == self.COMPONENT_CWELLKNOWN:
             self.desc = 'CWELLKNOWN'
-        elif type == self.COMPONENT_CSTORM:
-            self.desc = 'COMPONENT_CSTORM'
-
         elif type == self.COMPONENT_UECHO:
             self.desc = 'UECHO'
         elif type == self.COMPONENT_UINJECT:
-            self.desc = 'COMPONENT_UINJECT'
-
+            self.desc = 'UINJECT'
         elif type == self.COMPONENT_RRT:
             self.desc = 'RRT'
-
         elif type == self.COMPONENT_SECURITY:
             self.desc = 'SECURITY'
-
+        elif type == self.COMPONENT_USERIALBRIDGE:
+            self.desc = 'USERIALBRIDGE'
         elif type == self.COMPONENT_UEXPIRATION:
             self.desc = 'UEXPIRATION'
-
         elif type == self.COMPONENT_UMONITOR:
             self.desc = 'UMONITOR'
-
-        elif type == self.COMPONENT_CJOIN:
-            self.desc = 'CJOIN'
-
-        elif type == self.COMPONENT_OPENOSCOAP:
-            self.desc = 'OPENOSCOAP'
-
+        elif type == self.COMPONENT_CINFRARED:
+            self.desc = 'CINFRARED'
+  
         else:
             self.desc = 'unknown'
             self.addr = None
@@ -229,6 +236,38 @@ class TypeCellType(OpenType):
         else:
             self.desc = 'unknown'
             self.addr = None
+
+class TypeFrameType(OpenType):
+    IEEE154_TYPE_BEACON = 0
+    IEEE154_TYPE_DATA = 1
+    IEEE154_TYPE_ACK = 2
+    IEEE154_TYPE_CMD = 3
+    IEEE154_TYPE_UNDEFINED = 5
+
+    def __init__(self):
+        super(TypeFrameType, self).__init__()
+
+    def __str__(self):
+        return '{0} ({1})'.format(self.type, self.desc)
+
+    # ======================== public ==========================================
+
+    def update(self, type):
+        self.type = type
+        if type == self.IEEE154_TYPE_BEACON:
+            self.desc = 'BEACON'
+        elif type == self.IEEE154_TYPE_DATA:
+            self.desc = 'DATA'
+        elif type == self.IEEE154_TYPE_ACK:
+            self.desc = 'ACK'
+        elif type == self.IEEE154_TYPE_CMD:
+            self.desc = 'CMD'
+        elif type == self.IEEE154_TYPE_UNDEFINED:
+            self.desc = 'UNDEFINED'
+        else:
+            self.desc = 'unknown'
+            self.addr = None
+
 
 
 class TypeAsn(OpenType):
