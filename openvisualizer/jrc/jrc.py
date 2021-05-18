@@ -31,8 +31,9 @@ log.addHandler(logging.NullHandler())
 # ======================== Top Level jrc Class =============================
 class JRC(object):
     def __init__(self):
+        coap_resource2 = CexampleResource()
         coap_resource = JoinResource()
-        self.coap_server = CoapServer(coap_resource, ContextHandler(coap_resource).security_context_lookup)
+        self.coap_server = CoapServer(coap_resource, coap_resource2, ContextHandler(coap_resource).security_context_lookup)
 
     def close(self):
         self.coap_server.close()
@@ -113,7 +114,7 @@ class CoapServer(EventBusClient):
     # link-local prefix
     LINK_LOCAL_PREFIX = [0xfe, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
 
-    def __init__(self, coap_resource, context_handler=None):
+    def __init__(self, coap_resource, coap_resource2=None, context_handler=None):
         # log
         log.debug("create instance")
         self.coap_resource = coap_resource
@@ -125,6 +126,9 @@ class CoapServer(EventBusClient):
         self.coap_server.addResource(coap_resource)
         self.coap_server.addSecurityContextHandler(context_handler)
         self.coap_server.maxRetransmit = 1
+
+        if (coap_resource2 is not None):
+              self.coap_server.addResource(coap_resource2)
 
         self.coap_client = None
 
@@ -333,3 +337,20 @@ class JoinResource(coapResource.coapResource):
             return Defs.COAP_RC_2_04_CHANGED, [], resp_payload
         else:
             return Defs.COAP_RC_4_01_UNAUTHORIZED, [], []
+
+# ==================== Implementation of CoAP cexample resource =====================
+class CexampleResource(coapResource.coapResource):
+    def __init__(self):
+        self.networkKey = Utils.str2buf(os.urandom(16))  # random key every time OpenVisualizer is initialized
+        self.networkKeyIndex = 0x01  # L2 key index
+
+        # initialize parent class
+        coapResource.coapResource.__init__(self, path='ex')
+
+    def PUT(self, options=[], payload=[]):  # noqa: N802
+
+        log.verbose("received cexample PUT")
+        
+        return Defs.COAP_RC_2_03_VALID,[], []
+
+       
