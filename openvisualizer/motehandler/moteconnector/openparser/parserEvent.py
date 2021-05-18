@@ -50,7 +50,7 @@ class ParserEvent(parser.Parser):
             c = conn.cursor()
             #packet reception / transmission
             c.execute('''CREATE TABLE pkt
-            (asn int, moteid text, event text, src text, dest text, type text, validrx int, slotOffset int, channelOffset int, priority int, numTxAttempts int, lqi int, rssi int, crc int)''')
+            (asn int, moteid text, event text, src text, dest text, type text, validrx int, slotOffset int, channelOffset int, priority int, numTxAttempts int, lqi int, rssi int, crc int, buffer_pos int)''')
             
              #schedule modification
             c.execute('''CREATE TABLE schedule
@@ -70,10 +70,18 @@ class ParserEvent(parser.Parser):
             c.execute('''CREATE TABLE sixtopStates
             (asn int, moteid text, state text)''')
                         
-            #FRAME INTERRUPT
+             #FRAME INTERRUPT
             c.execute('''CREATE TABLE frameInterrupt
             (asn int, moteid text, intrpt text, state text)''')
        
+            #APPLICATION INTERRUPT
+            c.execute('''CREATE TABLE application
+            (asn int, moteid text, component text, seqnum int, buffer_pos int)''')
+            
+            #QUEUE INTERRUPT
+            c.execute('''CREATE TABLE queue
+            (asn int, moteid text, buffer_pos int, event text)''')
+
                #end
             conn.commit()
             conn.close()
@@ -345,8 +353,22 @@ class ParserEvent(parser.Parser):
             return("NONE")
         return(str(code))
      
-     
-
+    @staticmethod
+    def componentString(code):
+        if (code == 0x20):
+            return("CEXAMPLE")
+        return(str(code))
+        
+        
+    @staticmethod
+    def queueEventString(code):
+        if (code == 1):
+            return("ALLOCATE")
+        if (code == 2):
+            return("DELETE")
+        return(str(code))
+        
+                    
     def parse_input(self, data):
 
         # log
@@ -364,7 +386,7 @@ class ParserEvent(parser.Parser):
         #handle each statistic independently
         #PKT TRANSMISSION / RECEPTION
         if (typeStat == 1):
-            if (len(data) != 40):
+            if (len(data) != 41):
                 log.error("Incorrect length for a stat_pkt in ParserEvent.py ({0})".format(len(data)))
                 return 'error', data
         
@@ -381,12 +403,13 @@ class ParserEvent(parser.Parser):
             lqi             = data[37]
             rssi            = data[38]
             crc             = data[39]
+            buffer_pos      = data[40]
             
             if 'dbfilename' in globals():
                 try:
                     conn = sqlite3.connect(dbfilename)
                     c = conn.cursor()
-                    c.execute("""INSERT INTO pkt (asn,moteid,event,src,dest,type,validrx, slotOffset,channelOffset,priority,numTxAttempts,lqi,rssi,crc) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""", (asn, moteid, event, src, dest, type, validRx, slotOffset, channelOffset, priority, numTxAttempts, lqi, rssi, crc))
+                    c.execute("""INSERT INTO pkt (asn,moteid,event,src,dest,type,validrx, slotOffset,channelOffset,priority,numTxAttempts,lqi,rssi,crc,buffer_pos) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""", (asn, moteid, event, src, dest, type, validRx, slotOffset, channelOffset, priority, numTxAttempts, lqi, rssi, crc, buffer_pos))
                     conn.commit()
                     conn.close()
                 except:
@@ -521,7 +544,54 @@ class ParserEvent(parser.Parser):
                 log.info("5 {0} {1} {2} {3}".format(asn, moteid, intrpt, state))
                 
 
+             #APPLICATION
+        elif (typeStat == 7):
+            if (len(data) != 18):
+                log.error("Incorrect length for an application in ParserEvent.py (length={0},data={1})".format(len(data), data))
+                return 'error', data
+
+            component = ParserEvent.componentString(data[14])
+            seqnum  = data[15] + 256 * data[16]
+            buffer_pos = data[17]
             
+            if 'dbfilename' in globals():
+                try:
+                    conn = sqlite3.connect(dbfilename)
+                    c = conn.cursor()
+                    c.execute("""INSERT INTO application (asn, moteid, component, seqnum, buffer_pos) VALUES (?,?,?,?,?)""", (asn, moteid, component, seqnum, buffer_pos))
+                    conn.commit()
+                    conn.close()
+                except:
+                    print("Unexpected error:", sys.exc_info()[0])
+
+            else:
+                log.info("5 {0} {1} {2} {3}".format(asn, moteid, component, seqnum))
+                
+        #OPENQUEUE
+        elif (typeStat == 8):
+            if (len(data) != 16):
+                log.error("Incorrect length for a queue in ParserEvent.py (length={0},data={1})".format(len(data), data))
+                return 'error', data
+
+            buffer_pos = data[14]
+            event  = ParserEvent.queueEventString(data[15])
+
+            
+            if 'dbfilename' in globals():
+                try:
+                    conn = sqlite3.connect(dbfilename)
+                    c = conn.cursor()
+                    c.execute("""INSERT INTO queue (asn, moteid, buffer_pos, event) VALUES (?,?,?,?)""", (asn, moteid, buffer_pos, event))
+                    conn.commit()
+                    conn.close()
+                except:
+                    print("Unexpected error:", sys.exc_info()[0])
+
+            else:
+                log.info("5 {0} {1} {2} {3}".format(asn, moteid, component, seqnum))
+                
+
+
         else:
             log.error('unknown statistic type={0}'.format(typeStat))
            
