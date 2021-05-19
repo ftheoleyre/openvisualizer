@@ -345,8 +345,9 @@ class CexampleResource(coapResource.coapResource):
 
     def PUT(self, options=[], payload=None):  # noqa: N802
 
-        seqnum = payload[1] + 256 *  payload[0]
-        log.debug("received cexample PUT from ip={0}, port={1}, seqnum={2}, payload={3}".format(srcIp, srcPort, seqnum, payload))
+        src = ':'.join('%02x' % b for b in payload[0:8])
+        seqnum = payload[9] + 256 *  payload[8]
+        log.debug("received cexample PUT from src={0}, seqnum={1}, payload={2}".format(src, seqnum, payload))
         
         return Defs.COAP_RC_2_03_VALID,[], []
 
