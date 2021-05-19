@@ -32,8 +32,6 @@ class ParserEvent(parser.Parser):
         # initialize parent class
         super(ParserEvent, self).__init__(self.HEADER_LENGTH)
 
-        print("creation")
-
         # create the db
         try:
             directory = os.path.dirname(log.handlers[0].baseFilename)
