@@ -48,7 +48,7 @@ class ParserEvent(parser.Parser):
             c = conn.cursor()
             #packet reception / transmission
             c.execute('''CREATE TABLE pkt
-            (asn int, moteid text, event text, src text, dest text, type text, validrx int, slotOffset int, channelOffset int, priority int, numTxAttempts int, lqi int, rssi int, crc int, buffer_pos int)''')
+            (asn int, moteid text, event text, l2src text, l2dest text, type text, validrx int, slotOffset int, channelOffset int, priority int, numTxAttempts int, lqi int, rssi int, crc int, buffer_pos int, l3src text, l3dest text, l4proto int, l4destport int)''')
             
              #schedule modification
             c.execute('''CREATE TABLE schedule
@@ -384,14 +384,14 @@ class ParserEvent(parser.Parser):
         #handle each statistic independently
         #PKT TRANSMISSION / RECEPTION
         if (typeStat == 1):
-            if (len(data) != 41):
+            if (len(data) != 76):
                 log.error("Incorrect length for a stat_pkt in ParserEvent.py ({0})".format(len(data)))
                 return 'error', data
         
 
             event           = ParserEvent.eventPktString(data[14])
-            src             = ParserEvent.bytes_to_addr(data[15:23])
-            dest            = ParserEvent.bytes_to_addr(data[23:31])
+            l2src           = ParserEvent.bytes_to_addr(data[15:23])
+            l2dest          = ParserEvent.bytes_to_addr(data[23:31])
             validRx         = data[31]
             type            = ParserEvent.typePacketString(data[32])
             slotOffset      = data[33]
@@ -402,12 +402,17 @@ class ParserEvent(parser.Parser):
             rssi            = data[38]
             crc             = data[39]
             buffer_pos      = data[40]
+            l3src           = ParserEvent.bytes_to_addr(data[41:57])
+            l3dest          = ParserEvent.bytes_to_addr(data[57:73])
+            l4proto         = data[73]
+            l4destport      = data[74] + 256 * data[75]
+            
             
             if 'dbfilename' in globals():
                 try:
                     conn = sqlite3.connect(dbfilename)
                     c = conn.cursor()
-                    c.execute("""INSERT INTO pkt (asn,moteid,event,src,dest,type,validrx, slotOffset,channelOffset,priority,numTxAttempts,lqi,rssi,crc,buffer_pos) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""", (asn, moteid, event, src, dest, type, validRx, slotOffset, channelOffset, priority, numTxAttempts, lqi, rssi, crc, buffer_pos))
+                    c.execute("""INSERT INTO pkt (asn,moteid,event,l2src,l2dest,type,validrx, slotOffset,channelOffset,priority,numTxAttempts,lqi,rssi,crc,buffer_pos,l3src,l3dest,l4proto,l4destport) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""", (asn, moteid, event, l2src, l2dest, type, validRx, slotOffset, channelOffset, priority, numTxAttempts, lqi, rssi, crc, buffer_pos,l3src,l3dest,l4proto,l4destport))
                     conn.commit()
                     conn.close()
                 except:
