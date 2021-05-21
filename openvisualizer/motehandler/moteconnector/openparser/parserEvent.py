@@ -380,225 +380,206 @@ class ParserEvent(parser.Parser):
         asn = ParserEvent.bytes_to_string(data[0:5])    # asn
         typeStat = data[5]
         moteid   = ParserEvent.bytes_to_addr(data[6:14])                           # type
-           
-        #handle each statistic independently
-        #PKT TRANSMISSION / RECEPTION
-        if (typeStat == 1):
-            if (len(data) != 76):
-                log.error("Incorrect length for a stat_pkt in ParserEvent.py ({0})".format(len(data)))
-                return 'error', data
         
+        
+        try:
+            #handle each statistic independently
+            #PKT TRANSMISSION / RECEPTION
+            if (typeStat == 1):
+                if (len(data) != 76):
+                    log.error("Incorrect length for a stat_pkt in ParserEvent.py ({0})".format(len(data)))
+                    return 'error', data
+            
 
-            event           = ParserEvent.eventPktString(data[14])
-            l2src           = ParserEvent.bytes_to_addr(data[15:23])
-            l2dest          = ParserEvent.bytes_to_addr(data[23:31])
-            validRx         = data[31]
-            type            = ParserEvent.typePacketString(data[32])
-            slotOffset      = data[33]
-            channelOffset   = data[34]
-            priority        = data[35]
-            numTxAttempts   = data[36]
-            lqi             = data[37]
-            rssi            = data[38]
-            crc             = data[39]
-            buffer_pos      = data[40]
-            l3src           = ParserEvent.bytes_to_addr(data[41:57])
-            l3dest          = ParserEvent.bytes_to_addr(data[57:73])
-            l4proto         = data[73]
-            l4destport      = data[74] + 256 * data[75]
-            
-            
-            if 'dbfilename' in globals():
-                try:
+                event           = ParserEvent.eventPktString(data[14])
+                l2src           = ParserEvent.bytes_to_addr(data[15:23])
+                l2dest          = ParserEvent.bytes_to_addr(data[23:31])
+                validRx         = data[31]
+                type            = ParserEvent.typePacketString(data[32])
+                slotOffset      = data[33]
+                channelOffset   = data[34]
+                priority        = data[35]
+                numTxAttempts   = data[36]
+                lqi             = data[37]
+                rssi            = data[38]
+                crc             = data[39]
+                buffer_pos      = data[40]
+                l3src           = ParserEvent.bytes_to_addr(data[41:57])
+                l3dest          = ParserEvent.bytes_to_addr(data[57:73])
+                l4proto         = data[73]
+                l4destport      = data[74] + 256 * data[75]
+                
+                if 'dbfilename' in globals():
+                
                     conn = sqlite3.connect(dbfilename)
                     c = conn.cursor()
                     c.execute("""INSERT INTO pkt (asn,moteid,event,l2src,l2dest,type,validrx, slotOffset,channelOffset,priority,numTxAttempts,lqi,rssi,crc,buffer_pos,l3src,l3dest,l4proto,l4destport) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""", (asn, moteid, event, l2src, l2dest, type, validRx, slotOffset, channelOffset, priority, numTxAttempts, lqi, rssi, crc, buffer_pos,l3src,l3dest,l4proto,l4destport))
                     conn.commit()
                     conn.close()
-                except:
-                    print("Unexpected error:", sys.exc_info()[0])
 
-            else:
-                log.info("1 {0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11} {12} {13}".format(asn, moteid, event, src, dest, type, validRx, slotOffset, channelOffset, priority, numTxAttempts, lqi, rssi, crc))
-         
-        #SCHEDULE
-        elif (typeStat == 2):
-            if (len(data) != 37):
-                log.error("Incorrect length for a stat_schedule in ParserEvent.py ({0})".format(len(data)))
-                return 'error', data
-        
-            event           = ParserEvent.eventScheduleString(data[14])
-            neighbor        = ParserEvent.bytes_to_addr(data[15:23])
-            neighbor2       = ParserEvent.bytes_to_addr(data[23:31])
-            type            = ParserEvent.typeCellString(data[31])
-            shared          = data[32]
-            anycast         = data[33]
-            priority        = data[34]
-            slotOffset      = data[35]
-            channelOffset   = data[36]
+                else:
+                    log.info("1 {0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11} {12} {13}".format(asn, moteid, event, src, dest, type, validRx, slotOffset, channelOffset, priority, numTxAttempts, lqi, rssi, crc))
+             
+            #SCHEDULE
+            elif (typeStat == 2):
+                if (len(data) != 37):
+                    log.error("Incorrect length for a stat_schedule in ParserEvent.py ({0})".format(len(data)))
+                    return 'error', data
             
+                event           = ParserEvent.eventScheduleString(data[14])
+                neighbor        = ParserEvent.bytes_to_addr(data[15:23])
+                neighbor2       = ParserEvent.bytes_to_addr(data[23:31])
+                type            = ParserEvent.typeCellString(data[31])
+                shared          = data[32]
+                anycast         = data[33]
+                priority        = data[34]
+                slotOffset      = data[35]
+                channelOffset   = data[36]
+                
 
-            if 'dbfilename' in globals():
-                try:
+                if 'dbfilename' in globals():
                     conn = sqlite3.connect(dbfilename)
                     c = conn.cursor()
                     c.execute("""INSERT INTO schedule (asn, moteid, event, neighbor, neighbor2, type, shared, anycast, priority, slotOffset,channelOffset) VALUES (?,?,?,?,?,?,?,?,?,?,?)""", (asn, moteid, event, neighbor, neighbor2, type, shared, anycast, priority, slotOffset, channelOffset))
                     conn.commit()
                     conn.close()
-                except:
-                    print("Unexpected error:", sys.exc_info()[0])
-
-            else:
-                log.info("2 {0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10}".format(asn, moteid, event, neighbor, neighbor2, type, shared, anycast, priority, slotOffset, channelOffset))
+                   
+                else:
+                    log.info("2 {0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10}".format(asn, moteid, event, neighbor, neighbor2, type, shared, anycast, priority, slotOffset, channelOffset))
+                
+            #RPL
+            elif (typeStat == 3):
+                if (len(data) != 31):
+                    log.error("Incorrect length for a stat_rpl in ParserEvent.py ({0})".format(len(data)))
+                    return 'error', data
             
-        #RPL
-        elif (typeStat == 3):
-            if (len(data) != 31):
-                log.error("Incorrect length for a stat_rpl in ParserEvent.py ({0})".format(len(data)))
-                return 'error', data
-        
-            event           = ParserEvent.eventRPLString(data[14])
-            addr1           = ParserEvent.bytes_to_addr(data[15:23])
-            addr2           = ParserEvent.bytes_to_addr(data[23:31])
+                event           = ParserEvent.eventRPLString(data[14])
+                addr1           = ParserEvent.bytes_to_addr(data[15:23])
+                addr2           = ParserEvent.bytes_to_addr(data[23:31])
 
-            if 'dbfilename' in globals():
-                try:
+                if 'dbfilename' in globals():
                     conn = sqlite3.connect(dbfilename)
                     c = conn.cursor()
                     c.execute("""INSERT INTO rpl (asn, moteid, event, addr1, addr2) VALUES (?,?,?,?,?)""", (asn, moteid, event, addr1, addr2))
                     conn.commit()
                     conn.close()
-                except:
-                    print("Unexpected error:", sys.exc_info()[0])
+                    
+                else:
+                    log.info("3 {0} {1} {2} {3} {4}".format(asn, moteid, event, addr1, addr2))
+                    
+                    
+            #SIXTOP
+            elif (typeStat == 4):
+                if (len(data) != 36):
+                    log.error("Incorrect length for a stat_sixtop in ParserEvent.py ({0})".format(len(data)))
+                    return 'error', data
 
-            else:
-                log.info("3 {0} {1} {2} {3} {4}".format(asn, moteid, event, addr1, addr2))
+                event           = ParserEvent.eventSixtopString(data[14])
+                neighbor        = ParserEvent.bytes_to_addr(data[15:23])
+                neighbor2       = ParserEvent.bytes_to_addr(data[23:31])
+                type            = ParserEvent.typeSixtopString(data[31])
+                code            = ParserEvent.codeSixtopString(data[32])
+                command         = ParserEvent.commandSixtopString(data[33])
+                seqNum          = data[34]
+                numCells        = data[35]
                 
-                
-        #SIXTOP
-        elif (typeStat == 4):
-            if (len(data) != 36):
-                log.error("Incorrect length for a stat_sixtop in ParserEvent.py ({0})".format(len(data)))
-                return 'error', data
-
-            event           = ParserEvent.eventSixtopString(data[14])
-            neighbor        = ParserEvent.bytes_to_addr(data[15:23])
-            neighbor2       = ParserEvent.bytes_to_addr(data[23:31])
-            type            = ParserEvent.typeSixtopString(data[31])
-            code            = ParserEvent.codeSixtopString(data[32])
-            command         = ParserEvent.commandSixtopString(data[33])
-            seqNum          = data[34]
-            numCells        = data[35]
-            
-            if 'dbfilename' in globals():
-                try:
+                if 'dbfilename' in globals():
                     conn = sqlite3.connect(dbfilename)
                     c = conn.cursor()
                     c.execute("""INSERT INTO sixtop (asn, moteid, event, neighbor, neighbor2, type, code, command, seqNum, numCells) VALUES (?,?,?,?,?,?,?,?,?,?)""", (asn, moteid, event, neighbor, neighbor2, type, code, command, seqNum, numCells))
                     conn.commit()
                     conn.close()
-                except:
-                    print("Unexpected error:", sys.exc_info()[0])
+     
+                else:
+                    log.info("4 {0} {1} {2} {3} {4} {5} {6} {7} {8} {9}".format(asn, moteid, event, neighbor, neighbor2, type, code, command, seqNum, numCells))
+                    
+            #SIXTOP STATE CHANGED
+            elif (typeStat == 5):
+                if (len(data) != 15):
+                    log.error("Incorrect length for a stat_sixtopchangeState in ParserEvent.py ({0})".format(len(data)))
+                    return 'error', data
 
-            else:
-                log.info("4 {0} {1} {2} {3} {4} {5} {6} {7} {8} {9}".format(asn, moteid, event, neighbor, neighbor2, type, code, command, seqNum, numCells))
+                state           = ParserEvent.sixtopStateString(data[14])
                 
-        #SIXTOP STATE CHANGED
-        elif (typeStat == 5):
-            if (len(data) != 15):
-                log.error("Incorrect length for a stat_sixtopchangeState in ParserEvent.py ({0})".format(len(data)))
-                return 'error', data
-
-            state           = ParserEvent.sixtopStateString(data[14])
-            
-            if 'dbfilename' in globals():
-                try:
+                if 'dbfilename' in globals():
                     conn = sqlite3.connect(dbfilename)
                     c = conn.cursor()
                     c.execute("""INSERT INTO sixtopStates (asn, moteid, state) VALUES (?,?,?)""", (asn, moteid, state))
                     conn.commit()
                     conn.close()
-                except:
-                    print("Unexpected error:", sys.exc_info()[0])
+     
+                else:
+                    log.info("5 {0} {1} {2}".format(asn, moteid, state))
+                    
+            #SIXTOP STATE CHANGED
+            elif (typeStat == 6):
+                if (len(data) != 16):
+                    log.error("Incorrect length for a frameInterrupt in ParserEvent.py ({0})".format(len(data)))
+                    return 'error', data
 
-            else:
-                log.info("5 {0} {1} {2}".format(asn, moteid, state))
-                
-        #SIXTOP STATE CHANGED
-        elif (typeStat == 6):
-            if (len(data) != 16):
-                log.error("Incorrect length for a frameInterrupt in ParserEvent.py ({0})".format(len(data)))
-                return 'error', data
+                intrpt = ParserEvent.frameInterruptString(data[14])
+                state  = ParserEvent.ieee154eStateString(data[15])
 
-            intrpt = ParserEvent.frameInterruptString(data[14])
-            state  = ParserEvent.ieee154eStateString(data[15])
-
-            if 'dbfilename' in globals():
-                try:
+                if 'dbfilename' in globals():
                     conn = sqlite3.connect(dbfilename)
                     c = conn.cursor()
                     c.execute("""INSERT INTO frameInterrupt (asn, moteid, intrpt, state) VALUES (?,?,?,?)""", (asn, moteid, intrpt, state))
                     conn.commit()
                     conn.close()
-                except:
-                    print("Unexpected error:", sys.exc_info()[0])
+  
+                else:
+                    log.info("5 {0} {1} {2} {3}".format(asn, moteid, intrpt, state))
+                    
 
-            else:
-                log.info("5 {0} {1} {2} {3}".format(asn, moteid, intrpt, state))
+            #APPLICATION
+            elif (typeStat == 7):
+                if (len(data) != 18):
+                    log.error("Incorrect length for an application in ParserEvent.py (length={0},data={1})".format(len(data), data))
+                    return 'error', data
+
+                component = ParserEvent.componentString(data[14])
+                seqnum  = data[15] + 256 * data[16]
+                buffer_pos = data[17]
                 
-
-             #APPLICATION
-        elif (typeStat == 7):
-            if (len(data) != 18):
-                log.error("Incorrect length for an application in ParserEvent.py (length={0},data={1})".format(len(data), data))
-                return 'error', data
-
-            component = ParserEvent.componentString(data[14])
-            seqnum  = data[15] + 256 * data[16]
-            buffer_pos = data[17]
-            
-            if 'dbfilename' in globals():
-                try:
+                if 'dbfilename' in globals():
                     conn = sqlite3.connect(dbfilename)
                     c = conn.cursor()
                     c.execute("""INSERT INTO application (asn, moteid, component, seqnum, buffer_pos) VALUES (?,?,?,?,?)""", (asn, moteid, component, seqnum, buffer_pos))
                     conn.commit()
                     conn.close()
-                except:
-                    print("Unexpected error:", sys.exc_info()[0])
+   
+                else:
+                    log.info("5 {0} {1} {2} {3}".format(asn, moteid, component, seqnum))
+                    
+            #OPENQUEUE
+            elif (typeStat == 8):
+                if (len(data) != 16):
+                    log.error("Incorrect length for a queue in ParserEvent.py (length={0},data={1})".format(len(data), data))
+                    return 'error', data
 
-            else:
-                log.info("5 {0} {1} {2} {3}".format(asn, moteid, component, seqnum))
+                buffer_pos = data[14]
+                event  = ParserEvent.queueEventString(data[15])
+
                 
-        #OPENQUEUE
-        elif (typeStat == 8):
-            if (len(data) != 16):
-                log.error("Incorrect length for a queue in ParserEvent.py (length={0},data={1})".format(len(data), data))
-                return 'error', data
-
-            buffer_pos = data[14]
-            event  = ParserEvent.queueEventString(data[15])
-
-            
-            if 'dbfilename' in globals():
-                try:
+                if 'dbfilename' in globals():
                     conn = sqlite3.connect(dbfilename)
                     c = conn.cursor()
                     c.execute("""INSERT INTO queue (asn, moteid, buffer_pos, event) VALUES (?,?,?,?)""", (asn, moteid, buffer_pos, event))
                     conn.commit()
                     conn.close()
-                except:
-                    print("Unexpected error:", sys.exc_info()[0])
-
+                    
+                else:
+                    log.info("5 {0} {1} {2} {3}".format(asn, moteid, component, seqnum))
+   
             else:
-                log.info("5 {0} {1} {2} {3}".format(asn, moteid, component, seqnum))
-                
+                log.error('unknown statistic type={0}'.format(typeStat))
+               
+        except sqlite3.OperationalError as e:
+            print(e)
+            print(e.args)
+        except:
+            print("Unexpected error:", sys.exc_info()[0])
 
-
-        else:
-            log.error('unknown statistic type={0}'.format(typeStat))
-           
-        
         #sys.stdout.write("{0} {1} ".format(mote_id, asn));
         #sys.stdout.write("{}".format("".join([chr(c) for c in data[7:]])))
         #sys.stdout.flush()
