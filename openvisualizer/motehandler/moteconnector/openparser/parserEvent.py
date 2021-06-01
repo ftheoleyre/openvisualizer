@@ -7,6 +7,7 @@
 import logging
 import sys
 import sqlite3
+import traceback
 
 from openvisualizer.motehandler.moteconnector.openparser import parser
 from openvisualizer.motehandler.moteconnector.openparser.parserexception import ParserException
@@ -577,9 +578,12 @@ class ParserEvent(parser.Parser):
         except sqlite3.OperationalError as e:
             log.error(e)
             log.error(e.args)
-        except:
-            log.error("Unexpected error:", sys.exc_info()[0])
+        except  Exception as e:
+            log.error("Unexpected error:")
+            traceback.print_exc()
 
+            
+            
         #sys.stdout.write("{0} {1} ".format(mote_id, asn));
         #sys.stdout.write("{}".format("".join([chr(c) for c in data[7:]])))
         #sys.stdout.flush()

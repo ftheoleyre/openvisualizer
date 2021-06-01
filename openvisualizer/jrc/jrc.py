@@ -127,8 +127,8 @@ class CoapServer(EventBusClient):
         self.coap_server.addSecurityContextHandler(context_handler)
         self.coap_server.maxRetransmit = 1
 
-        if (coap_resource2 is not None):
-              self.coap_server.addResource(coap_resource2)
+        #if (coap_resource2 is not None):
+        #      self.coap_server.addResource(coap_resource2)
 
         self.coap_client = None
 
@@ -231,6 +231,8 @@ class CoapServer(EventBusClient):
         Forwards the packet to the virtual CoAP server running in test mode (PyDispatcher).
         """
 
+        log.verbose("coap packet from mesh:{0} / {1}".format(data, sender))
+        
         sender = format_ipv6_addr(data[0])
         # FIXME pass source port within the signal and open coap client at this port
         self.coap_client = \
@@ -246,6 +248,8 @@ class CoapServer(EventBusClient):
         Appends UDP and IPv6 headers to the CoAP message and forwards it on the Eventbus towards the mesh.
         """
         self.coap_client.close()
+        
+        
 
         # UDP
         udp_len = len(data) + 8
@@ -287,6 +291,8 @@ class CoapServer(EventBusClient):
 
         # announce network prefix
         self.dispatch(signal='v6ToMesh', data=ip)
+        
+        log.verbose("coap packet from coapserver:{0} / {1}".format(data, sender))
 
 
 # ==================== Implementation of CoAP join resource =====================
@@ -332,10 +338,12 @@ class JoinResource(coapResource.coapResource):
                         'context': object_security.context,
                     },
                 ]
-
+            log.verbose("JRC, found={0}".format(found))
+            
             # return the Join Response regardless of whether it is a first or Nth join attempt
             return Defs.COAP_RC_2_04_CHANGED, [], resp_payload
         else:
+            log.verbose("JRC, COAP_RC_4_01_UNAUTHORIZED".format(found))
             return Defs.COAP_RC_4_01_UNAUTHORIZED, [], []
 
 # ==================== Implementation of CoAP cexample resource =====================
@@ -347,7 +355,7 @@ class CexampleResource(coapResource.coapResource):
 
         src = ':'.join('%02x' % b for b in payload[0:8])
         seqnum = payload[9] + 256 *  payload[8]
-        log.debug("received cexample PUT from src={0}, seqnum={1}, payload={2}".format(src, seqnum, payload))
+        log.info("received cexample PUT from src={0}, seqnum={1}, payload={2}".format(src, seqnum, payload))
         
         return Defs.COAP_RC_2_03_VALID,[], []
 
