@@ -209,7 +209,7 @@ class OpenLbr(EventBusClient):
 
         try:
             ipv6_bytes = data
-
+            
             # turn raw byte into dictionary of fields
             ipv6 = self.disassemble_ipv6(ipv6_bytes)
 
@@ -221,6 +221,8 @@ class OpenLbr(EventBusClient):
                 is_link_local = True
             else:
                 is_link_local = False
+
+            log.verbose("v6tomesh: {0}:{1}:{2}".format(sender, data, ipv6['dst_addr'][0]))
 
             # log
             if log.isEnabledFor(logging.DEBUG):
@@ -251,11 +253,16 @@ class OpenLbr(EventBusClient):
 
                 lowpan['route'].pop()  # remove last as this is me.
 
+            log.verbose("route {0}".format(lowpan['route']))
+
             # get next hop as this has to be the destination address, this is the last element on the list
             lowpan['nextHop'] = lowpan['route'][len(lowpan['route']) - 1]
 
             # turn dictionary of fields into raw bytes
             lowpan_bytes = self.reassemble_lowpan(lowpan)
+            
+            
+            log.verbose("lowpanbytes {0}".format(lowpan_bytes))
 
             # log
             if log.isEnabledFor(logging.DEBUG):
@@ -297,6 +304,9 @@ class OpenLbr(EventBusClient):
                 data = (address, reassembled)
             else:
                 return
+                
+            log.verbose("_mesh_to_v6_notif: {0}/{1}".format(data, sender))
+
 
             # build lowpan dictionary from the data
             ipv6dic = self.lowpan_to_ipv6(data)
@@ -324,6 +334,9 @@ class OpenLbr(EventBusClient):
                     ipv6dic['hop_limit'] = ipv6dic_inner['hop_limit']
                 ipv6dic['dst_addr'] = ipv6dic_inner['dst_addr']
                 ipv6dic['flow_label'] = ipv6dic_inner['flow_label']
+
+                log.verbose("src: {0}".format(ipv6dic['src_addr']))
+
 
                 if hopbyhop_header_present:
                     # hop by hop header present, check hop_flags
@@ -423,11 +436,18 @@ class OpenLbr(EventBusClient):
                     ipv6dic['udp_length'] = ipv6dic['payload'][4:6]
                     ipv6dic['udp_checksum'] = ipv6dic['payload'][6:8]
                     ipv6dic['app_payload'] = ipv6dic['payload'][8:]
+                    
+                    log.verbose("udp src port: {0}".format(ipv6dic['udp_dest_port']))
+
+
 
                 dispatch_signal = (tuple(ipv6dic['dst_addr']), self.PROTO_UDP, ipv6dic['udp_dest_port'])
             else:
                 log.error('Unknown next header {}, dropping packet'.format(ipv6dic['next_header']))
                 return
+
+
+
 
             # keep payload and app_payload in case we want to assemble the message later.
             # as source address is being retrieved from the IPHC header, the signal includes it in case

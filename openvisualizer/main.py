@@ -225,6 +225,9 @@ class OpenVisualizerServer(SimpleXMLRPCServer, EventBusClient):
             # in "hardware" mode, motes are connected to the serial port
             self.mote_probes = SerialMoteProbe.probe_serial_ports(port_mask=port_mask, baudrate=baudrate)
 
+        log.verbose("list of moteprobes")
+        log.verbose(self.mote_probes)
+
         # create a MoteConnector for each MoteProbe
         try:
             fw_defines = self.extract_stack_defines()

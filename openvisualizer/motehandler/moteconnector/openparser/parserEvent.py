@@ -37,8 +37,8 @@ class ParserEvent(parser.Parser):
             directory = os.path.dirname(log.handlers[0].baseFilename)
             global dbfilename
             dbfilename = directory+'/openv_events.db'
-            log.verbose("created the sqlite db {0}".format(dbfilename))
-            print("created the sqlite db {0}".format(dbfilename))
+            log.success("created the sqlite db {0}".format(dbfilename))
+    
             
             if (os.path.exists(dbfilename)):
                 os.remove(dbfilename)
@@ -86,9 +86,9 @@ class ParserEvent(parser.Parser):
             
             
         except AttributeError:
-            print("no LogHandler for parserEvent: we cannot store the events in a sqlite DB")
+            log.error("no LogHandler for parserEvent: we cannot store the events in a sqlite DB")
         except:
-            print("Unexpected error:", sys.exc_info()[0])
+            log.error("Unexpected error:", sys.exc_info()[0])
 
         
          
@@ -575,10 +575,10 @@ class ParserEvent(parser.Parser):
                 log.error('unknown statistic type={0}'.format(typeStat))
                
         except sqlite3.OperationalError as e:
-            print(e)
-            print(e.args)
+            log.error(e)
+            log.error(e.args)
         except:
-            print("Unexpected error:", sys.exc_info()[0])
+            log.error("Unexpected error:", sys.exc_info()[0])
 
         #sys.stdout.write("{0} {1} ".format(mote_id, asn));
         #sys.stdout.write("{}".format("".join([chr(c) for c in data[7:]])))

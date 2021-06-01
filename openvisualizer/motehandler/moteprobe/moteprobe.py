@@ -79,6 +79,7 @@ class MoteProbe(threading.Thread):
     # ======================== thread ==================================
 
     def run(self):
+        log.verbose("motepreo {0}".format(self))
         try:
             log.debug("start running")
             log.debug("attach to port {0}".format(self._portname))
@@ -100,14 +101,14 @@ class MoteProbe(threading.Thread):
                     self.serial.done_reading()
             log.warning('{}; exit loop'.format(self._portname))
         except Exception as err:
-            print("crash")
+            log.error("crash")
             err_msg = format_crash_message(self.name, err)
             log.critical(err_msg)
             sys.exit(-1)
         finally:
             log.critical("cannot attach port {0} (pid {1}, {2})".format(self._portname, os.getpid(), os.getppid()))
             #os.kill(os.getpid(), signal.SIGINT)
-            sys.exit(-1)
+            #sys.exit(-1)
             
             
     # ======================== public ==================================
