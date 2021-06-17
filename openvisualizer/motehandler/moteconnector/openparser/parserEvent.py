@@ -44,6 +44,8 @@ class ParserEvent(parser.Parser):
             if (os.path.exists(dbfilename)):
                 os.remove(dbfilename)
             conn = sqlite3.connect(dbfilename)
+            conn.isolation_level = 'EXCLUSIVE'
+            conn.execute('BEGIN EXCLUSIVE')
 
             # Create tables
             c = conn.cursor()
@@ -73,17 +75,18 @@ class ParserEvent(parser.Parser):
             c.execute('''CREATE TABLE frameInterrupt
             (asn int, moteid text, intrpt text, state text)''')
        
-            #APPLICATION INTERRUPT
+            #APPLICATION
             c.execute('''CREATE TABLE application
             (asn int, moteid text, component text, seqnum int, buffer_pos int)''')
             
-            #QUEUE INTERRUPT
+            #QUEUE
             c.execute('''CREATE TABLE queue
             (asn int, moteid text, buffer_pos int, event text)''')
 
-               #end
-            conn.commit()
-            conn.close()
+            #CONFIG EVENT
+            c.execute('''CREATE TABLE config (asn int, moteid text, sixtop_timeout int, sixtop_anycast int, sixtop_lowest int, msf_numcells int, msf_maxcells int, msf_mincells int, neigh_maxrssi int, neigh_minrssi int, rpl_dagroot  int, debug_timing int, debug_rpl_enqueue int, debug_rank int, debug_sixtop int, debug_schedule int, debug_cca int)''')
+
+           
             
             
         except AttributeError:
@@ -413,6 +416,9 @@ class ParserEvent(parser.Parser):
                 if 'dbfilename' in globals():
                 
                     conn = sqlite3.connect(dbfilename)
+                    conn.isolation_level = 'EXCLUSIVE'
+                    conn.execute('BEGIN EXCLUSIVE')
+
                     c = conn.cursor()
                     c.execute("""INSERT INTO pkt (asn,moteid,event,l2src,l2dest,type,validrx, slotOffset,channelOffset,priority,numTxAttempts,lqi,rssi,crc,buffer_pos,l3src,l3dest,l4proto,l4destport) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""", (asn, moteid, event, l2src, l2dest, type, validRx, slotOffset, channelOffset, priority, numTxAttempts, lqi, rssi, crc, buffer_pos,l3src,l3dest,l4proto,l4destport))
                     conn.commit()
@@ -440,6 +446,9 @@ class ParserEvent(parser.Parser):
 
                 if 'dbfilename' in globals():
                     conn = sqlite3.connect(dbfilename)
+                    conn.isolation_level = 'EXCLUSIVE'
+                    conn.execute('BEGIN EXCLUSIVE')
+
                     c = conn.cursor()
                     c.execute("""INSERT INTO schedule (asn, moteid, event, neighbor, neighbor2, type, shared, anycast, priority, slotOffset,channelOffset) VALUES (?,?,?,?,?,?,?,?,?,?,?)""", (asn, moteid, event, neighbor, neighbor2, type, shared, anycast, priority, slotOffset, channelOffset))
                     conn.commit()
@@ -460,6 +469,9 @@ class ParserEvent(parser.Parser):
 
                 if 'dbfilename' in globals():
                     conn = sqlite3.connect(dbfilename)
+                    conn.isolation_level = 'EXCLUSIVE'
+                    conn.execute('BEGIN EXCLUSIVE')
+
                     c = conn.cursor()
                     c.execute("""INSERT INTO rpl (asn, moteid, event, addr1, addr2) VALUES (?,?,?,?,?)""", (asn, moteid, event, addr1, addr2))
                     conn.commit()
@@ -486,6 +498,9 @@ class ParserEvent(parser.Parser):
                 
                 if 'dbfilename' in globals():
                     conn = sqlite3.connect(dbfilename)
+                    conn.isolation_level = 'EXCLUSIVE'
+                    conn.execute('BEGIN EXCLUSIVE')
+
                     c = conn.cursor()
                     c.execute("""INSERT INTO sixtop (asn, moteid, event, neighbor, neighbor2, type, code, command, seqNum, numCells) VALUES (?,?,?,?,?,?,?,?,?,?)""", (asn, moteid, event, neighbor, neighbor2, type, code, command, seqNum, numCells))
                     conn.commit()
@@ -504,6 +519,9 @@ class ParserEvent(parser.Parser):
                 
                 if 'dbfilename' in globals():
                     conn = sqlite3.connect(dbfilename)
+                    conn.isolation_level = 'EXCLUSIVE'
+                    conn.execute('BEGIN EXCLUSIVE')
+
                     c = conn.cursor()
                     c.execute("""INSERT INTO sixtopStates (asn, moteid, state) VALUES (?,?,?)""", (asn, moteid, state))
                     conn.commit()
@@ -523,13 +541,16 @@ class ParserEvent(parser.Parser):
 
                 if 'dbfilename' in globals():
                     conn = sqlite3.connect(dbfilename)
+                    conn.isolation_level = 'EXCLUSIVE'
+                    conn.execute('BEGIN EXCLUSIVE')
+
                     c = conn.cursor()
                     c.execute("""INSERT INTO frameInterrupt (asn, moteid, intrpt, state) VALUES (?,?,?,?)""", (asn, moteid, intrpt, state))
                     conn.commit()
                     conn.close()
   
                 else:
-                    log.info("5 {0} {1} {2} {3}".format(asn, moteid, intrpt, state))
+                    log.info("6 {0} {1} {2} {3}".format(asn, moteid, intrpt, state))
                     
 
             #APPLICATION
@@ -544,15 +565,18 @@ class ParserEvent(parser.Parser):
                 
                 if 'dbfilename' in globals():
                     conn = sqlite3.connect(dbfilename)
+                    conn.isolation_level = 'EXCLUSIVE'
+                    conn.execute('BEGIN EXCLUSIVE')
+
                     c = conn.cursor()
                     c.execute("""INSERT INTO application (asn, moteid, component, seqnum, buffer_pos) VALUES (?,?,?,?,?)""", (asn, moteid, component, seqnum, buffer_pos))
                     conn.commit()
                     conn.close()
    
                 else:
-                    log.info("5 {0} {1} {2} {3}".format(asn, moteid, component, seqnum))
+                    log.info("7 {0} {1} {2} {3} {4}".format(asn, moteid, component, seqnum, buffer_pos))
                     
-            #OPENQUEUE
+                   #OPENQUEUE
             elif (typeStat == 8):
                 if (len(data) != 16):
                     log.error("Incorrect length for a queue in ParserEvent.py (length={0},data={1})".format(len(data), data))
@@ -564,13 +588,55 @@ class ParserEvent(parser.Parser):
                 
                 if 'dbfilename' in globals():
                     conn = sqlite3.connect(dbfilename)
+                    conn.isolation_level = 'EXCLUSIVE'
+                    conn.execute('BEGIN EXCLUSIVE')
                     c = conn.cursor()
                     c.execute("""INSERT INTO queue (asn, moteid, buffer_pos, event) VALUES (?,?,?,?)""", (asn, moteid, buffer_pos, event))
                     conn.commit()
                     conn.close()
                     
                 else:
-                    log.info("5 {0} {1} {2} {3}".format(asn, moteid, component, seqnum))
+                    log.info("8 {0} {1} {2} {3}".format(asn, moteid, buffer_pos, event))
+               
+            #CONFIG
+            elif (typeStat == 9):
+                if (len(data) != 30):
+                    log.error("Incorrect length for a config in ParserEvent.py (length={0},data={1})".format(len(data), data))
+                    return 'error', data
+
+                
+                #sixtop
+                sixtop_timeout = data[14] + 256 * data[15]
+                sixtop_anycast = data[16]
+                sixtop_lowest  = data[17]
+                #msf
+                msf_numcells    = data[18]
+                msf_maxcells    = data[19]
+                msf_mincells    = data[20]
+                #neighborhood table
+                neigh_maxrssi   = data[21]
+                neigh_minrssi   = data[22]
+                #rpl
+                rpl_dagroot     = data[23]
+                #debug
+                debug_timing    = data[24]
+                debug_rpl_enqueue = data[25]
+                debug_rank      = data[26]
+                debug_sixtop    = data[27]
+                debug_schedule  = data[28]
+                debug_cca       = data[29]
+                
+                if 'dbfilename' in globals():
+                    conn = sqlite3.connect(dbfilename)
+                    conn.isolation_level = 'EXCLUSIVE'
+                    conn.execute('BEGIN EXCLUSIVE')
+                    c = conn.cursor()
+                    c.execute("""INSERT INTO config (asn, moteid, sixtop_timeout, sixtop_anycast, sixtop_lowest, msf_numcells, msf_maxcells, msf_mincells, neigh_maxrssi, neigh_minrssi, rpl_dagroot , debug_timing, debug_rpl_enqueue, debug_rank, debug_sixtop, debug_schedule, debug_cca) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""", (asn, moteid, sixtop_timeout, sixtop_anycast, sixtop_lowest, msf_numcells, msf_maxcells, msf_mincells, neigh_maxrssi, neigh_minrssi, rpl_dagroot , debug_timing, debug_rpl_enqueue, debug_rank, debug_sixtop, debug_schedule, debug_cca))
+                    conn.commit()
+                    conn.close()
+                    
+                else:
+                    log.info("9 {0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11} {12} {13} {14} {15} {16}".format(asn, moteid, sixtop_timeout, sixtop_anycast, sixtop_lowest, msf_numcells, msf_maxcells, msf_mincells, neigh_maxrssi, neigh_minrssi, rpl_dagroot , debug_timing, debug_rpl_enqueue, debug_rank, debug_sixtop, debug_schedule, debug_cca))
    
             else:
                 log.error('unknown statistic type={0}'.format(typeStat))
