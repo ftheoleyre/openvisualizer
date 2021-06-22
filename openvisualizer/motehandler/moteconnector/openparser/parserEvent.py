@@ -357,9 +357,98 @@ class ParserEvent(parser.Parser):
      
     @staticmethod
     def componentString(code):
-        if (code == 0x20):
+         if (code == 0x00):
+            return("NULL")
+         if (code == 0x01):
+            return("OPENWSN")
+         if (code == 0x02):
+            return("IDMANAGER")
+         if (code == 0x03):
+            return("OPENQUEUE")
+         if (code == 0x04):
+            return("OPENSERIAL")
+         if (code == 0x05):
+            return("PACKETFUNCTIONS")
+         if (code == 0x06):
+            return("RANDOM")
+         if (code == 0x07):
+            return("RADIO")
+         if (code == 0x08):
+            return("IEEE802154")
+         if (code == 0x09):
+            return("IEEE802154E")
+         if (code == 0x0a):
+            return("SIXTOP_TO_IEEE802154E")
+         if (code == 0x0b):
+            return("IEEE802154E_TO_SIXTOP")
+         if (code == 0x0c):
+            return("SIXTOP")
+         if (code == 0x0d):
+            return("NEIGHBORS")
+         if (code == 0x0e):
+            return("SCHEDULE")
+         if (code == 0x0f):
+            return("SIXTOP_RES")
+         if (code == 0x10):
+            return("MSF")
+         if (code == 0x11):
+            return("OPENBRIDGE")
+         if (code == 0x12):
+            return("IPHC")
+         if (code == 0x13):
+            return("FRAG")
+         if (code == 0x14):
+            return("FORWARDING")
+         if (code == 0x15):
+            return("OPENBRIDGE")
+         if (code == 0x16):
+            return("ICMPv6ECHO")
+         if (code == 0x17):
+            return("ICMPv6ROUTER")
+         if (code == 0x18):
+            return("ICMPv6RPL")
+         if (code == 0x19):
+            return("UDP")
+         if (code == 0x1a):
+            return("SOCK_TO_UDP")
+         if (code == 0x1b):
+            return("UDP_TO_SOCK")
+         if (code == 0x1c):
+            return("OPENCOAP")
+         if (code == 0x1d):
+            return("CJOIN")
+         if (code == 0x1e):
+            return("OSCORE")
+         if (code == 0x1f):
+            return("C6T")
+         if (code == 0x20):
             return("CEXAMPLE")
-        return(str(code))
+         if (code == 0x21):
+            return("CINFO")
+         if (code == 0x22):
+            return("CLEDS")
+         if (code == 0x23):
+            return("CSENSORS")
+         if (code == 0x24):
+            return("CSTORM")
+         if (code == 0x25):
+            return("CSENSORS")
+         if (code == 0x26):
+            return("UECHO")
+         if (code == 0x27):
+            return("UINJECT")
+         if (code == 0x28):
+            return("RRT")
+         if (code == 0x29):
+            return("SECURITY")
+         if (code == 0x2a):
+            return("USERIALBRIDGE")
+         if (code == 0x2b):
+            return("UEXPIRATION")
+         if (code == 0x2c):
+            return("UMONITOR")
+         if (code == 0x2d):
+            return("CINFRARED")
         
         
     @staticmethod
