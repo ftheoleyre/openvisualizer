@@ -51,7 +51,7 @@ class ParserEvent(parser.Parser):
             c = conn.cursor()
             #packet reception / transmission
             c.execute('''CREATE TABLE pkt
-            (asn int, moteid text, event text, l2src text, l2dest text, type text, validrx int, slotOffset int, channelOffset int, priority int, numTxAttempts int, lqi int, rssi int, crc int, buffer_pos int, l3src text, l3dest text, l4proto int, l4destport int)''')
+            (asn int, moteid text, event text, l2src text, l2dest text, type text, validrx int, slotOffset int, channelOffset int, shared int, autoCell int, priority int, numTxAttempts int, lqi int, rssi int, crc int, buffer_pos int, l3src text, l3dest text, l4proto int, l4destport int)''')
             
              #schedule modification
             c.execute('''CREATE TABLE schedule
@@ -84,7 +84,7 @@ class ParserEvent(parser.Parser):
             (asn int, moteid text, buffer_pos int, event text)''')
 
             #CONFIG EVENT
-            c.execute('''CREATE TABLE config (asn int, moteid text, sixtop_timeout int, sixtop_anycast int, sixtop_lowest int, msf_numcells int, msf_maxcells int, msf_mincells int, neigh_maxrssi int, neigh_minrssi int, rpl_dagroot  int, debug_timing int, debug_rpl_enqueue int, debug_rank int, debug_sixtop int, debug_schedule int, debug_cca int)''')
+            c.execute('''CREATE TABLE config (asn int, moteid text, sixtop_timeout int, sixtop_anycast int, sixtop_lowest int, msf_numcells int, msf_maxcells int, msf_mincells int, neigh_maxrssi int, neigh_minrssi int, rpl_dagroot  int, debug_timing int, debug_rpl_enqueue int, debug_rank int, debug_sixtop int, debug_schedule int, debug_cca int, cexample_period int)''')
 
            
             
@@ -291,7 +291,11 @@ class ParserEvent(parser.Parser):
             return("STARTOFFRAME")
         if (code == 1):
             return("ENDOFFRAME")
-        return(str(code))       
+        if (code == 2):
+            return("CCA_IDLE")
+        if (code == 3):
+            return("CCA_BUSY")
+        return(str(code))
 
     @staticmethod
     def ieee154eStateString(code):
@@ -479,7 +483,7 @@ class ParserEvent(parser.Parser):
             #handle each statistic independently
             #PKT TRANSMISSION / RECEPTION
             if (typeStat == 1):
-                if (len(data) != 76):
+                if (len(data) != 78):
                     log.error("Incorrect length for a stat_pkt in ParserEvent.py ({0})".format(len(data)))
                     return 'error', data
             
@@ -491,16 +495,18 @@ class ParserEvent(parser.Parser):
                 type            = ParserEvent.typePacketString(data[32])
                 slotOffset      = data[33]
                 channelOffset   = data[34]
-                priority        = data[35]
-                numTxAttempts   = data[36]
-                lqi             = data[37]
-                rssi            = data[38]
-                crc             = data[39]
-                buffer_pos      = data[40]
-                l3src           = ParserEvent.bytes_to_addr(data[41:57])
-                l3dest          = ParserEvent.bytes_to_addr(data[57:73])
-                l4proto         = data[73]
-                l4destport      = data[74] + 256 * data[75]
+                shared          = data[35]
+                isAutoCell      = data[36]
+                priority        = data[37]
+                numTxAttempts   = data[38]
+                lqi             = data[39]
+                rssi            = data[40]
+                crc             = data[41]
+                buffer_pos      = data[42]
+                l3src           = ParserEvent.bytes_to_addr(data[43:59])
+                l3dest          = ParserEvent.bytes_to_addr(data[59:75])
+                l4proto         = data[75]
+                l4destport      = data[76] + 256 * data[77]
                 
                 if 'dbfilename' in globals():
                 
@@ -509,7 +515,7 @@ class ParserEvent(parser.Parser):
                     conn.execute('BEGIN EXCLUSIVE')
 
                     c = conn.cursor()
-                    c.execute("""INSERT INTO pkt (asn,moteid,event,l2src,l2dest,type,validrx, slotOffset,channelOffset,priority,numTxAttempts,lqi,rssi,crc,buffer_pos,l3src,l3dest,l4proto,l4destport) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""", (asn, moteid, event, l2src, l2dest, type, validRx, slotOffset, channelOffset, priority, numTxAttempts, lqi, rssi, crc, buffer_pos,l3src,l3dest,l4proto,l4destport))
+                    c.execute("""INSERT INTO pkt (asn,moteid,event,l2src,l2dest,type,validrx, slotOffset,channelOffset,shared,autoCell, priority,numTxAttempts,lqi,rssi,crc,buffer_pos,l3src,l3dest,l4proto,l4destport) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""", (asn, moteid, event, l2src, l2dest, type, validRx, slotOffset, channelOffset, shared, isAutoCell, priority, numTxAttempts, lqi, rssi, crc, buffer_pos,l3src,l3dest,l4proto,l4destport))
                     conn.commit()
                     conn.close()
 
@@ -689,7 +695,7 @@ class ParserEvent(parser.Parser):
                
             #CONFIG
             elif (typeStat == 9):
-                if (len(data) != 30):
+                if (len(data) != 32):
                     log.error("Incorrect length for a config in ParserEvent.py (length={0},data={1})".format(len(data), data))
                     return 'error', data
 
@@ -714,18 +720,20 @@ class ParserEvent(parser.Parser):
                 debug_sixtop    = data[27]
                 debug_schedule  = data[28]
                 debug_cca       = data[29]
+                #app
+                cexample_period = data[30] + 256 * data[31]
                 
                 if 'dbfilename' in globals():
                     conn = sqlite3.connect(dbfilename)
                     conn.isolation_level = 'EXCLUSIVE'
                     conn.execute('BEGIN EXCLUSIVE')
                     c = conn.cursor()
-                    c.execute("""INSERT INTO config (asn, moteid, sixtop_timeout, sixtop_anycast, sixtop_lowest, msf_numcells, msf_maxcells, msf_mincells, neigh_maxrssi, neigh_minrssi, rpl_dagroot , debug_timing, debug_rpl_enqueue, debug_rank, debug_sixtop, debug_schedule, debug_cca) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""", (asn, moteid, sixtop_timeout, sixtop_anycast, sixtop_lowest, msf_numcells, msf_maxcells, msf_mincells, neigh_maxrssi, neigh_minrssi, rpl_dagroot , debug_timing, debug_rpl_enqueue, debug_rank, debug_sixtop, debug_schedule, debug_cca))
+                    c.execute("""INSERT INTO config (asn, moteid, sixtop_timeout, sixtop_anycast, sixtop_lowest, msf_numcells, msf_maxcells, msf_mincells, neigh_maxrssi, neigh_minrssi, rpl_dagroot , debug_timing, debug_rpl_enqueue, debug_rank, debug_sixtop, debug_schedule, debug_cca, cexample_period) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""", (asn, moteid, sixtop_timeout, sixtop_anycast, sixtop_lowest, msf_numcells, msf_maxcells, msf_mincells, neigh_maxrssi, neigh_minrssi, rpl_dagroot , debug_timing, debug_rpl_enqueue, debug_rank, debug_sixtop, debug_schedule, debug_cca, cexample_period))
                     conn.commit()
                     conn.close()
                     
                 else:
-                    log.info("9 {0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11} {12} {13} {14} {15} {16}".format(asn, moteid, sixtop_timeout, sixtop_anycast, sixtop_lowest, msf_numcells, msf_maxcells, msf_mincells, neigh_maxrssi, neigh_minrssi, rpl_dagroot , debug_timing, debug_rpl_enqueue, debug_rank, debug_sixtop, debug_schedule, debug_cca))
+                    log.info("9 {0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11} {12} {13} {14} {15} {16} {17}".format(asn, moteid, sixtop_timeout, sixtop_anycast, sixtop_lowest, msf_numcells, msf_maxcells, msf_mincells, neigh_maxrssi, neigh_minrssi, rpl_dagroot , debug_timing, debug_rpl_enqueue, debug_rank, debug_sixtop, debug_schedule, debug_cca, cexample_period))
    
             else:
                 log.error('unknown statistic type={0}'.format(typeStat))
