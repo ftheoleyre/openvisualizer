@@ -510,7 +510,7 @@ class ParserEvent(parser.Parser):
                 
                 if 'dbfilename' in globals():
                 
-                    conn = sqlite3.connect(dbfilename)
+                    conn = sqlite3.connect(dbfilename, timeout=20)
                     conn.isolation_level = 'EXCLUSIVE'
                     conn.execute('BEGIN EXCLUSIVE')
 
