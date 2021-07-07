@@ -56,7 +56,7 @@ class OpenParser(parser.Parser):
         self.parser_data = parserdata.ParserData(mqtt_broker, mote_port)
         self.parser_packet = parserpacket.ParserPacket()
         self.parser_printf = parserprintf.ParserPrintf()
-        self.parser_event = parserevent.ParserEvent()
+        self.parser_event = parserevent.ParserEvent(mote_port)
 
         # register subparsers
         self._add_sub_parser(
