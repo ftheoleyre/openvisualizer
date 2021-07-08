@@ -45,7 +45,7 @@ class ParserEvent(parser.Parser):
             #flush the existing one + connection
             if (os.path.exists(self.dbfilename)):
                 os.remove(self.dbfilename)
-            dbconn = sqlite3.connect(self.dbfilename, check_same_thread=False)
+            dbconn = sqlite3.connect(self.dbfilename) # check_same_thread=False)
             dbconn.isolation_level = 'EXCLUSIVE'
             dbconn.execute('BEGIN EXCLUSIVE')
             log.success("created the sqlite db {}".format(self.dbfilename))
@@ -476,7 +476,7 @@ class ParserEvent(parser.Parser):
         
         #creates the connection for this thread if none exists
         if self.dbconn.has_key(threadname) is False:
-            dbconn = sqlite3.connect(self.dbfilename, check_same_thread=False)
+            dbconn = sqlite3.connect(self.dbfilename)
             dbconn.isolation_level = 'EXCLUSIVE'
             dbconn.execute('BEGIN EXCLUSIVE')
             self.dbconn[threadname]  = dbconn
